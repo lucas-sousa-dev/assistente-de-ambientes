@@ -3,600 +3,769 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b1220">
-<title>Assistente de Ambientes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f8f5">
+<title>Meu Arquiteto IA</title>
 <style>
 :root{
-  --bg:#0b1220;
-  --panel:#172338;
-  --border:#30415a;
-  --blue:#38bdf8;
-  --text:#f1f5f9;
-  --muted:#a5b4c8;
+ --bg:#f7f8f5;--white:#fff;
+ --ink:#303a35;--muted:#77817b;
+ --sage:#a3b18a;--dark:#465b4b;
+ --line:#e2e8e0;--soft:#edf1e9;
 }
 *{box-sizing:border-box}
 body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
+ margin:0;background:var(--bg);
+ color:var(--ink);
+ font-family:Arial,Helvetica,sans-serif;
 }
 header{
-  padding:22px 16px;
-  background:#111c30;
-  border-bottom:1px solid var(--border);
+ background:white;padding:18px;
+ display:flex;align-items:center;
+ justify-content:space-between;
+ border-bottom:1px solid var(--line);
 }
-header h1{
-  margin:0 0 8px;
-  font-size:24px;
-  color:var(--blue);
+.logo{font-weight:800;font-size:20px}
+.logo span{color:#6b8969}
+.tag{
+ background:var(--soft);padding:7px 10px;
+ border-radius:20px;font-size:11px;
 }
-header p{margin:0;color:var(--muted)}
 nav{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  padding:12px;
-  background:#111c30;
+ display:flex;overflow-x:auto;gap:8px;
+ padding:12px;background:white;
+ border-bottom:1px solid var(--line);
 }
 nav button{
-  white-space:nowrap;
-  background:#24344d;
-  color:white;
-  border:1px solid var(--border);
+ white-space:nowrap;background:transparent;
+ color:var(--muted);border:0;
+ padding:12px;font-weight:600;
 }
 nav button.active{
-  background:#0369a1;
-  border-color:var(--blue);
+ background:var(--soft);color:var(--dark);
+ border-radius:12px;
 }
-main{
-  max-width:1000px;
-  margin:auto;
-  padding:16px;
-}
+main{max-width:1050px;margin:auto;padding:18px}
 section{display:none}
 section.active{display:block}
+h1{font-size:30px;line-height:1.2}
+h2{font-size:22px}
+p{line-height:1.6;color:var(--muted)}
 .card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:18px;
-  margin-bottom:16px;
+ background:white;border:1px solid var(--line);
+ padding:20px;border-radius:20px;
+ margin-bottom:17px;
 }
-h2{color:var(--blue);font-size:21px}
-h3{font-size:17px}
-p{line-height:1.55}
-label{
-  display:block;
-  margin:12px 0 6px;
-  color:var(--muted);
+.hero{
+ background:linear-gradient(130deg,#e6ede1,#f9faf6);
+ padding:28px;border-radius:24px;
+ margin-bottom:20px;
 }
-input,select,textarea{
-  width:100%;
-  padding:12px;
-  background:#0c1729;
-  color:white;
-  border:1px solid var(--border);
-  border-radius:8px;
-  font:inherit;
-}
-textarea{min-height:95px;resize:vertical}
-button{
-  padding:11px 15px;
-  border:0;
-  border-radius:9px;
-  cursor:pointer;
-  font-weight:bold;
-}
+button{cursor:pointer;font:inherit}
 .primary{
-  background:var(--blue);
-  color:#082032;
-  margin-top:14px;
+ background:var(--dark);color:white;
+ border:0;border-radius:12px;
+ padding:14px 20px;font-weight:700;
 }
 .secondary{
-  background:#293d59;
-  color:white;
-  margin-top:10px;
-}
-.danger{
-  background:#7f1d1d;
-  color:white;
-  margin-top:10px;
-}
-button:focus-visible,input:focus-visible,
-select:focus-visible,textarea:focus-visible{
-  outline:2px solid var(--blue);
-  outline-offset:2px;
+ background:var(--soft);color:var(--dark);
+ border:0;border-radius:12px;
+ padding:13px;font-weight:700;
 }
 .grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+ gap:12px;
 }
-.stat{
-  background:#0c1729;
-  padding:16px;
-  border-radius:10px;
+.choice{
+ padding:20px 12px;text-align:center;
+ border:1px solid var(--line);
+ border-radius:17px;background:white;
+ cursor:pointer;
 }
-.stat strong{
-  display:block;
-  font-size:23px;
-  color:var(--blue);
-  margin-top:8px;
+.choice.selected{
+ border:2px solid #799778;
+ background:#f0f5ec;
 }
-.small{font-size:13px;color:var(--muted)}
-.result{
-  padding:14px;
-  background:#102b3c;
-  border-left:4px solid var(--blue);
-  border-radius:8px;
-  margin-top:15px;
-  white-space:pre-wrap;
-  line-height:1.6;
+.choice .emoji{font-size:29px;margin-bottom:10px}
+input,textarea,select{
+ width:100%;padding:13px;
+ border:1px solid var(--line);
+ border-radius:12px;font:inherit;
+ background:white;color:var(--ink);
 }
-.chat{
-  height:310px;
-  overflow-y:auto;
-  background:#0c1729;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:12px;
+label{
+ display:block;margin:15px 0 7px;
+ font-weight:600;font-size:14px;
+}
+.upload{
+ border:2px dashed #aab9a4;
+ padding:30px 15px;text-align:center;
+ border-radius:18px;background:#f8faf6;
+ cursor:pointer;
+}
+.upload strong{display:block;margin:10px}
+.upload small{color:var(--muted)}
+.preview{
+ width:100%;max-height:300px;
+ object-fit:contain;border-radius:15px;
+ margin-top:15px;
+}
+.swatches{
+ display:grid;
+ grid-template-columns:repeat(5,1fr);
+ gap:12px;margin:15px 0;
+}
+.swatch{
+ width:100%;aspect-ratio:1;
+ border-radius:50%;border:2px solid white;
+ box-shadow:0 0 0 1px #d4d9d2;
+ cursor:pointer;
+}
+.swatch.selected{
+ box-shadow:0 0 0 3px #465b4b;
+}
+.room{
+ position:relative;
+ width:100%;height:300px;
+ overflow:hidden;border-radius:18px;
+ background:#eee;
+ border:1px solid var(--line);
+}
+.ceiling{
+ position:absolute;top:0;left:0;
+ width:100%;height:13%;
+ background:#fff;
+}
+.wall{
+ position:absolute;top:13%;left:0;
+ width:100%;height:59%;
+ background:#a3b18a;
+}
+.floor{
+ position:absolute;bottom:0;left:0;
+ width:100%;height:28%;
+ background:#d6c3a5;
+}
+.window{
+ position:absolute;top:22%;left:10%;
+ width:23%;height:35%;
+ background:linear-gradient(140deg,#cce8ec,#f6fcff);
+ border:8px solid #f5f5f0;
+ box-shadow:0 2px 7px #0002;
+}
+.sofa{
+ position:absolute;bottom:15%;left:32%;
+ width:47%;height:23%;
+ background:#d7d0c3;
+ border-radius:20px 20px 7px 7px;
+ box-shadow:0 8px 15px #0002;
+}
+.sofa:before{
+ content:"";position:absolute;
+ width:85%;height:45%;
+ top:8%;left:7%;
+ border-bottom:3px solid #0002;
+}
+.plant{
+ position:absolute;bottom:21%;right:5%;
+ font-size:45px;
+}
+.roomlabel{
+ position:absolute;bottom:7px;left:10px;
+ background:#ffffffdb;
+ padding:7px 10px;border-radius:9px;
+ font-size:11px;
+}
+.chatbutton{
+ position:fixed;right:20px;bottom:22px;
+ border:0;border-radius:50px;
+ background:#465b4b;color:white;
+ padding:16px 20px;
+ box-shadow:0 8px 25px #0003;
+ z-index:10;font-weight:700;
+}
+.chatpanel{
+ display:none;position:fixed;
+ right:12px;bottom:85px;
+ width:min(390px,calc(100vw - 24px));
+ height:440px;background:white;
+ border:1px solid var(--line);
+ border-radius:20px;
+ box-shadow:0 10px 40px #0003;
+ z-index:11;overflow:hidden;
+}
+.chathead{
+ padding:15px;background:var(--dark);
+ color:white;display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
+.chathead button{
+ background:transparent;border:0;
+ color:white;font-size:22px;
+}
+.messages{
+ height:290px;overflow:auto;
+ padding:15px;background:#fafbf8;
 }
 .msg{
-  padding:12px;
-  margin:9px 0;
-  border-radius:10px;
-  line-height:1.5;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
+ padding:12px;border-radius:13px;
+ margin-bottom:10px;line-height:1.5;
+ font-size:14px;white-space:pre-wrap;
 }
-.user{background:#174d73;margin-left:15%}
-.bot{background:#27374e;margin-right:10%}
-.item{
-  padding:13px;
-  background:#0c1729;
-  border-radius:10px;
-  margin:10px 0;
+.bot{background:#e9efe5}
+.user{
+ background:#d5e4d2;
+ margin-left:35px;
 }
-.item strong{color:var(--blue)}
+.chatinput{
+ display:flex;gap:6px;padding:10px;
+}
+.chatinput input{min-width:0}
+.chatinput button{
+ border:0;border-radius:10px;
+ background:var(--dark);color:white;
+ padding:12px;
+}
+.project{
+ border:1px solid var(--line);
+ padding:15px;border-radius:15px;
+ margin-bottom:12px;
+}
+.muted{color:var(--muted);font-size:13px}
+.hidden{display:none}
 footer{
-  text-align:center;
-  color:var(--muted);
-  font-size:12px;
-  padding:25px;
+ text-align:center;padding:30px;
+ color:var(--muted);font-size:12px;
 }
 @media(max-width:500px){
-  header h1{font-size:21px}
-  main{padding:12px}
-  .card{padding:14px}
+ h1{font-size:26px}
+ main{padding:12px}
+ .card{padding:16px}
+ .room{height:250px}
 }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🏠 Assistente de Ambientes</h1>
-  <p>Planeje melhor. Aproveite cada espaço.</p>
+ <div class="logo">⌂ Meu <span>Arquiteto IA</span></div>
+ <div class="tag">BETA 0.3</div>
 </header>
 
-<nav aria-label="Navegação principal">
-  <button class="active" data-tab="inicio">Início</button>
-  <button data-tab="ambientes">Ambientes</button>
-  <button data-tab="projetos">Projetos</button>
-  <button data-tab="assistente">Assistente</button>
-  <button data-tab="sobre">Sobre</button>
+<nav>
+ <button class="active" data-page="inicio">Início</button>
+ <button data-page="criar">Criar projeto</button>
+ <button data-page="personalizar">Personalizar</button>
+ <button data-page="projetos">Meus projetos</button>
 </nav>
 
 <main>
-
 <section id="inicio" class="active">
-  <div class="card">
-    <h2>Bem-vindo ao seu planejador!</h2>
-    <p>
-      Organize seus ambientes, calcule medidas
-      e descubra ideias para aproveitar melhor
-      os espaços da sua casa.
-    </p>
-    <button class="primary" onclick="abrir('ambientes')">
-      Criar meu primeiro ambiente
-    </button>
+ <div class="hero">
+  <div class="tag" style="display:inline-block">
+   ✨ Seu assistente de decoração
   </div>
+  <h1>Seu espaço.<br>Novas possibilidades.</h1>
+  <p>
+   Envie uma planta, fotografe um cômodo
+   ou escolha um estilo. Transforme suas
+   ideias em ambientes inspiradores.
+  </p>
+  <button class="primary" onclick="abrir('criar')">
+   Começar meu projeto →
+  </button>
+ </div>
 
-  <div class="grid">
-    <div class="stat">
-      Ambientes cadastrados
-      <strong id="total">0</strong>
-    </div>
-    <div class="stat">
-      Área total cadastrada
-      <strong id="areaTotal">0 m²</strong>
-    </div>
+ <h2>Como você quer começar?</h2>
+ <div class="grid">
+  <div class="choice" onclick="escolher('planta');abrir('criar')">
+   <div class="emoji">📐</div>
+   <strong>Enviar planta</strong>
+   <p class="muted">Imagem ou PDF</p>
   </div>
+  <div class="choice" onclick="escolher('foto');abrir('criar')">
+   <div class="emoji">📷</div>
+   <strong>Tirar foto</strong>
+   <p class="muted">Use sua câmera</p>
+  </div>
+  <div class="choice" onclick="escolher('video');abrir('criar')">
+   <div class="emoji">🎥</div>
+   <strong>Enviar vídeo</strong>
+   <p class="muted">Mostre seu espaço</p>
+  </div>
+ </div>
 
-  <div class="card">
-    <h3>O que você pode fazer?</h3>
-    <p>📐 Calcular a metragem dos cômodos.</p>
-    <p>🛋️ Receber sugestões de organização.</p>
-    <p>💾 Salvar ambientes no dispositivo.</p>
-    <p>💬 Conversar com o assistente demonstrativo.</p>
-  </div>
+ <div class="card" style="margin-top:20px">
+  <h2>🎨 Experimente novas cores</h2>
+  <p>
+   Teste combinações para paredes,
+   tetos, pisos e móveis.
+  </p>
+  <button class="secondary" onclick="abrir('personalizar')">
+   Abrir personalização
+  </button>
+ </div>
 </section>
 
-<section id="ambientes">
-  <div class="card">
-    <h2>Cadastrar ambiente</h2>
+<section id="criar">
+ <h2>Vamos transformar seu ambiente</h2>
+ <p>Escolha como deseja mostrar seu espaço.</p>
 
-    <label for="nome">Nome do ambiente</label>
-    <input id="nome" placeholder="Ex.: Quarto principal">
-
-    <label for="tipo">Tipo de ambiente</label>
-    <select id="tipo">
-      <option value="sala">Sala</option>
-      <option value="quarto">Quarto</option>
-      <option value="cozinha">Cozinha</option>
-      <option value="banheiro">Banheiro</option>
-      <option value="escritorio">Escritório</option>
-      <option value="outro">Outro</option>
-    </select>
-
-    <label for="largura">Largura (metros)</label>
-    <input id="largura" type="number"
-      step="0.01" min="0.01" placeholder="Ex.: 2.50">
-
-    <label for="comprimento">Comprimento (metros)</label>
-    <input id="comprimento" type="number"
-      step="0.01" min="0.01" placeholder="Ex.: 3.20">
-
-    <label for="altura">Altura do teto (opcional)</label>
-    <input id="altura" type="number"
-      step="0.01" min="0.01" placeholder="Ex.: 2.70">
-
-    <label for="estilo">Estilo preferido</label>
-    <select id="estilo">
-      <option>Moderno</option>
-      <option>Minimalista</option>
-      <option>Clássico</option>
-      <option>Industrial</option>
-      <option>Contemporâneo</option>
-      <option>Econômico</option>
-    </select>
-
-    <button class="primary" onclick="calcular()">
-      Calcular e sugerir
-    </button>
-
-    <div id="resultado" class="result"
-      style="display:none" aria-live="polite"></div>
-
-    <button id="salvarBtn" class="secondary"
-      style="display:none" onclick="salvar()">
-      Salvar ambiente
-    </button>
+ <div class="grid">
+  <div class="choice selected" data-mode="planta" onclick="escolher('planta')">
+   <div class="emoji">📐</div>Planta
   </div>
+  <div class="choice" data-mode="foto" onclick="escolher('foto')">
+   <div class="emoji">📷</div>Foto
+  </div>
+  <div class="choice" data-mode="video" onclick="escolher('video')">
+   <div class="emoji">🎥</div>Vídeo
+  </div>
+ </div>
+
+ <div class="card" style="margin-top:15px">
+  <label for="nome">Nome do projeto</label>
+  <input id="nome" placeholder="Ex.: Minha sala nova">
+
+  <label>Envie seu ambiente</label>
+  <div class="upload" onclick="document.getElementById('arquivo').click()">
+   <div style="font-size:32px">☁️</div>
+   <strong id="uploadtxt">Toque para enviar sua planta</strong>
+   <small>Selecione um arquivo do celular</small>
+  </div>
+  <input id="arquivo" type="file" class="hidden"
+   accept="image/*,application/pdf"
+   onchange="mostrarArquivo(event)">
+
+  <div id="arquivoInfo" class="muted" style="margin-top:10px"></div>
+  <div id="visualArquivo"></div>
+
+  <label for="estilo">Qual estilo você prefere?</label>
+  <select id="estilo">
+   <option>Moderno</option>
+   <option>Minimalista</option>
+   <option>Escandinavo</option>
+   <option>Industrial</option>
+   <option>Clássico</option>
+   <option>Japandi</option>
+   <option>Contemporâneo</option>
+  </select>
+
+  <label for="descricao">O que você gostaria de mudar?</label>
+  <textarea id="descricao" rows="3"
+   placeholder="Ex.: Quero armários planejados e cores claras."></textarea>
+
+  <button class="primary" style="width:100%;margin-top:18px"
+   onclick="criarProjeto()">
+   ✨ Preparar meu projeto
+  </button>
+  <p class="muted">
+   Nesta versão, o aplicativo salva o briefing.
+   A geração automática de imagens com IA
+   será conectada posteriormente.
+  </p>
+ </div>
+</section>
+
+<section id="personalizar">
+ <h2>Personalize seu ambiente</h2>
+ <p>
+  Experimente cores e veja as alterações
+  na representação visual abaixo.
+ </p>
+
+ <div class="card">
+  <div class="room" id="room">
+   <div class="ceiling" id="teto"></div>
+   <div class="wall" id="parede"></div>
+   <div class="floor" id="piso"></div>
+   <div class="window"></div>
+   <div class="sofa" id="moveis"></div>
+   <div class="plant">🌿</div>
+   <div class="roomlabel">Prévia ilustrativa</div>
+  </div>
+  <p class="muted">
+   Simulação de cores. Ainda não representa
+   a planta ou fotografia enviada.
+  </p>
+ </div>
+
+ <div class="card">
+  <h2>O que deseja modificar?</h2>
+  <div class="grid">
+   <button class="secondary" onclick="selecionarParte('parede')">Parede</button>
+   <button class="secondary" onclick="selecionarParte('teto')">Teto</button>
+   <button class="secondary" onclick="selecionarParte('piso')">Piso</button>
+   <button class="secondary" onclick="selecionarParte('moveis')">Móveis</button>
+  </div>
+
+  <p id="parteAtual"><strong>Selecionado: Parede</strong></p>
+
+  <h3>Escolha uma cor</h3>
+  <div class="swatches" id="paleta"></div>
+
+  <label for="corLivre">Ou escolha qualquer tonalidade</label>
+  <input id="corLivre" type="color" value="#a3b18a"
+   style="height:55px;padding:5px"
+   oninput="aplicarCor(this.value)">
+
+  <button class="secondary" style="width:100%;margin-top:15px"
+   onclick="restaurar()">
+   Restaurar cores originais
+  </button>
+  <button class="primary" style="width:100%;margin-top:10px"
+   onclick="salvarCores()">
+   Salvar minha combinação
+  </button>
+ </div>
 </section>
 
 <section id="projetos">
-  <div class="card">
-    <h2>Meus ambientes</h2>
-    <p class="small">
-      Os dados ficam salvos neste navegador.
-      Não são sincronizados com outros aparelhos.
-    </p>
-    <div id="lista"></div>
-  </div>
+ <h2>Meus projetos</h2>
+ <p>Seus projetos e combinações salvos neste navegador.</p>
+ <div id="listaProjetos"></div>
 </section>
-
-<section id="assistente">
-  <div class="card">
-    <h2>Assistente de decoração</h2>
-    <p class="small">
-      Versão demonstrativa, sem conexão com IA.
-      As respostas seguem regras predefinidas.
-    </p>
-
-    <div class="chat" id="chat" role="log"
-      aria-label="Conversa com o assistente">
-      <div class="msg bot">
-        Olá! 👋 Sou seu assistente de ambientes.
-
-        Posso apresentar ideias básicas para quartos,
-        salas, cozinhas e espaços pequenos.
-
-        Qual ambiente você deseja organizar?
-      </div>
-    </div>
-
-    <label for="pergunta">Sua mensagem</label>
-    <textarea id="pergunta"
-      placeholder="Ex.: Quero aproveitar melhor minha cozinha pequena"></textarea>
-
-    <button class="primary" onclick="enviar()">
-      Enviar mensagem
-    </button>
-  </div>
-</section>
-
-<section id="sobre">
-  <div class="card">
-    <h2>Sobre o projeto</h2>
-    <p>
-      Assistente de Ambientes é um projeto
-      de tecnologia para auxiliar pessoas
-      a planejar e organizar seus espaços.
-    </p>
-    <p>
-      Nossa proposta é unir praticidade,
-      decoração, medidas e inteligência
-      artificial em uma única plataforma.
-    </p>
-    <p><strong>Versão:</strong> 0.1</p>
-    <p><strong>Status:</strong> Protótipo inicial</p>
-    <p class="small">
-      As sugestões são preliminares e não
-      substituem projetos técnicos de
-      profissionais habilitados.
-    </p>
-  </div>
-</section>
-
 </main>
 
+<button class="chatbutton" onclick="alternarChat()">
+ ✨ Assistente IA
+</button>
+
+<div class="chatpanel" id="chatpanel">
+ <div class="chathead">
+  <strong>✨ Assistente de decoração</strong>
+  <button onclick="alternarChat()" aria-label="Fechar">×</button>
+ </div>
+ <div class="messages" id="messages">
+  <div class="msg bot">
+   Olá! 👋
+
+   Quer mudar a cor de uma parede,
+   do teto, do piso ou dos móveis?
+
+   Experimente escrever:
+   "Quero a parede verde musgo".
+  </div>
+ </div>
+ <div class="chatinput">
+  <input id="mensagem" placeholder="Peça uma alteração..."
+   onkeydown="if(event.key==='Enter')enviarChat()">
+  <button onclick="enviarChat()">➤</button>
+ </div>
+</div>
+
 <footer>
-  Assistente de Ambientes © 2026
-  <p>Projeto em desenvolvimento</p>
+ Meu Arquiteto IA © 2026
+ <p>Protótipo de desenvolvimento • Versão 0.3</p>
 </footer>
 
 <script>
 "use strict";
 
-const CHAVE = "assistente_ambientes_v1";
-let projetos = [];
-let atual = null;
+let modo="planta";
+let parte="parede";
+let arquivoAtual=null;
+let arquivoURL=null;
+let projetos=[];
 
-try {
-  const dados = JSON.parse(localStorage.getItem(CHAVE));
-  projetos = Array.isArray(dados) ? dados : [];
-} catch(e) {
-  projetos = [];
+const cores={
+ parede:"#a3b18a",
+ teto:"#ffffff",
+ piso:"#d6c3a5",
+ moveis:"#d7d0c3"
+};
+
+const paleta=[
+ "#ffffff","#f1eee7","#d6c3a5",
+ "#a3b18a","#747e62","#465b4b",
+ "#454b48","#c78064","#d8b8b1",
+ "#899daa","#b4a4c8","#e3d4a6",
+ "#8d7766","#cad9c4","#333333"
+];
+
+try{
+ const salvos=JSON.parse(localStorage.getItem("arquiteto_v03"));
+ projetos=Array.isArray(salvos)?salvos:[];
+}catch(e){projetos=[]}
+
+function abrir(id){
+ document.querySelectorAll("main section")
+  .forEach(s=>s.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll("nav button")
+  .forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+ if(id==="projetos")listar();
+ window.scrollTo(0,0);
 }
 
-function abrir(id) {
-  document.querySelectorAll("main section")
-    .forEach(s => s.classList.remove("active"));
+document.querySelectorAll("nav button").forEach(b=>{
+ b.onclick=()=>abrir(b.dataset.page);
+});
 
-  document.querySelectorAll("nav button")
-    .forEach(b => b.classList.remove("active"));
-
-  document.getElementById(id).classList.add("active");
-
-  const botao = document.querySelector(
-    'nav button[data-tab="' + id + '"]'
-  );
-  if(botao) botao.classList.add("active");
-
-  atualizar();
-  window.scrollTo(0,0);
+function escolher(novo){
+ modo=novo;
+ document.querySelectorAll("[data-mode]").forEach(el=>{
+  el.classList.toggle("selected",el.dataset.mode===modo);
+ });
+ const input=document.getElementById("arquivo");
+ input.value="";
+ arquivoAtual=null;
+ document.getElementById("visualArquivo").replaceChildren();
+ document.getElementById("arquivoInfo").textContent="";
+ const tipos={
+  planta:["image/*,application/pdf","Toque para enviar sua planta"],
+  foto:["image/*","Toque para fotografar ou enviar uma foto"],
+  video:["video/*","Toque para gravar ou enviar vídeo"]
+ };
+ input.accept=tipos[modo][0];
+ document.getElementById("uploadtxt").textContent=tipos[modo][1];
+ if(arquivoURL){URL.revokeObjectURL(arquivoURL);arquivoURL=null}
 }
 
-document.querySelectorAll("nav button")
-  .forEach(botao => {
-    botao.addEventListener("click", () => {
-      abrir(botao.dataset.tab);
-    });
-  });
+function mostrarArquivo(event){
+ const file=event.target.files[0];
+ if(!file)return;
+ arquivoAtual=file;
+ const area=document.getElementById("visualArquivo");
+ area.replaceChildren();
+ if(arquivoURL)URL.revokeObjectURL(arquivoURL);
+ arquivoURL=URL.createObjectURL(file);
+ document.getElementById("arquivoInfo").textContent=file.name;
 
-function sugestoes(tipo) {
-  const ideias = {
-    sala: [
-      "Use móveis com armazenamento interno.",
-      "Considere um painel de TV pouco profundo.",
-      "Avalie mesas dobráveis ou extensíveis."
-    ],
-    quarto: [
-      "Considere guarda-roupas até o teto.",
-      "Avalie uma cama com gavetas ou baú.",
-      "Priorize a circulação ao redor da cama."
-    ],
-    cozinha: [
-      "Aproveite o espaço vertical com armários.",
-      "Avalie móveis planejados sob medida.",
-      "Respeite ventilação e instalação dos eletrodomésticos."
-    ],
-    banheiro: [
-      "Avalie armários suspensos.",
-      "Use nichos onde forem tecnicamente viáveis.",
-      "Evite bloquear acessos e áreas de circulação."
-    ],
-    escritorio: [
-      "Considere uma bancada compacta.",
-      "Use prateleiras para armazenamento.",
-      "Aproveite iluminação natural sem gerar reflexos."
-    ],
-    outro: [
-      "Priorize móveis multifuncionais.",
-      "Evite obstruir portas e janelas.",
-      "Aproveite espaços verticais."
-    ]
+ if(file.type.startsWith("image/")){
+  const img=document.createElement("img");
+  img.src=arquivoURL;
+  img.className="preview";
+  img.alt="Prévia do ambiente enviado";
+  area.appendChild(img);
+ }else if(file.type.startsWith("video/")){
+  const video=document.createElement("video");
+  video.src=arquivoURL;
+  video.controls=true;
+  video.className="preview";
+  area.appendChild(video);
+ }else{
+  const p=document.createElement("p");
+  p.textContent="📄 PDF selecionado: "+file.name;
+  area.appendChild(p);
+ }
+}
+
+function criarProjeto(){
+ const nome=document.getElementById("nome").value.trim();
+ if(!nome){
+  alert("Dê um nome ao projeto.");
+  return;
+ }
+ if(!arquivoAtual){
+  alert("Envie uma planta, foto ou vídeo.");
+  return;
+ }
+ const projeto={
+  id:Date.now()+"-"+Math.random().toString(36).slice(2),
+  nome:nome,
+  modo:modo,
+  arquivo:arquivoAtual.name,
+  estilo:document.getElementById("estilo").value,
+  descricao:document.getElementById("descricao").value,
+  data:new Date().toLocaleDateString("pt-BR"),
+  tipo:"briefing"
+ };
+ projetos.push(projeto);
+ if(!persistir()){projetos.pop();return}
+ alert("Projeto registrado! A geração por IA ainda será integrada.");
+ abrir("projetos");
+}
+
+function persistir(){
+ try{
+  localStorage.setItem("arquiteto_v03",JSON.stringify(projetos));
+  return true;
+ }catch(e){
+  alert("Não foi possível salvar os dados.");
+  return false;
+ }
+}
+
+function listar(){
+ const lista=document.getElementById("listaProjetos");
+ lista.replaceChildren();
+ if(!projetos.length){
+  const p=document.createElement("p");
+  p.textContent="Você ainda não possui projetos salvos.";
+  lista.appendChild(p);
+  return;
+ }
+ projetos.forEach(p=>{
+  const card=document.createElement("div");
+  card.className="project";
+  const titulo=document.createElement("h3");
+  titulo.textContent=p.nome;
+  const info=document.createElement("p");
+  info.textContent=p.tipo==="cores"
+   ?"Combinação de cores • "+p.data
+   :p.modo+" • "+p.estilo+" • "+p.data;
+  const btn=document.createElement("button");
+  btn.className="secondary";
+  btn.textContent="Excluir";
+  btn.onclick=()=>{
+   if(!confirm("Excluir este projeto?"))return;
+   const anteriores=projetos;
+   projetos=projetos.filter(x=>x.id!==p.id);
+   if(!persistir())projetos=anteriores;
+   listar();
   };
-  return ideias[tipo] || ideias.outro;
+  card.append(titulo,info,btn);
+  if(p.tipo==="cores"){
+   const ver=document.createElement("button");
+   ver.className="secondary";
+   ver.textContent="Aplicar cores";
+   ver.style.marginRight="8px";
+   ver.onclick=()=>{
+    Object.assign(cores,p.cores);
+    atualizarCores();
+    abrir("personalizar");
+   };
+   card.insertBefore(ver,btn);
+  }
+  lista.appendChild(card);
+ });
 }
 
-function calcular() {
-  const nome = document.getElementById("nome").value.trim();
-  const tipo = document.getElementById("tipo").value;
-  const largura = Number(document.getElementById("largura").value);
-  const comprimento = Number(
-    document.getElementById("comprimento").value
+function selecionarParte(p){
+ parte=p;
+ const nomes={
+  parede:"Parede",teto:"Teto",
+  piso:"Piso",moveis:"Móveis"
+ };
+ document.getElementById("parteAtual").textContent=
+  "Selecionado: "+nomes[p];
+ document.getElementById("corLivre").value=cores[p];
+ desenharPaleta();
+}
+
+function desenharPaleta(){
+ const el=document.getElementById("paleta");
+ el.replaceChildren();
+ paleta.forEach(c=>{
+  const btn=document.createElement("button");
+  btn.className="swatch";
+  if(cores[parte].toLowerCase()===c)btn.classList.add("selected");
+  btn.style.backgroundColor=c;
+  btn.title=c;
+  btn.setAttribute("aria-label","Selecionar cor "+c);
+  btn.onclick=()=>aplicarCor(c);
+  el.appendChild(btn);
+ });
+}
+
+function aplicarCor(c){
+ cores[parte]=c;
+ atualizarCores();
+}
+
+function atualizarCores(){
+ Object.keys(cores).forEach(p=>{
+  document.getElementById(p).style.backgroundColor=cores[p];
+ });
+ document.getElementById("corLivre").value=cores[parte];
+ desenharPaleta();
+}
+
+function restaurar(){
+ Object.assign(cores,{
+  parede:"#a3b18a",
+  teto:"#ffffff",
+  piso:"#d6c3a5",
+  moveis:"#d7d0c3"
+ });
+ atualizarCores();
+}
+
+function salvarCores(){
+ const nome=prompt("Nome da combinação:","Minha decoração");
+ if(nome===null)return;
+ if(!nome.trim())return alert("Informe um nome.");
+ const p={
+  id:Date.now()+"-"+Math.random().toString(36).slice(2),
+  nome:nome.trim(),
+  tipo:"cores",
+  cores:{...cores},
+  data:new Date().toLocaleDateString("pt-BR")
+ };
+ projetos.push(p);
+ if(!persistir()){projetos.pop();return}
+ alert("Combinação salva!");
+}
+
+function alternarChat(){
+ const painel=document.getElementById("chatpanel");
+ painel.style.display=painel.style.display==="block"?"none":"block";
+}
+
+function adicionarMensagem(texto,tipo){
+ const area=document.getElementById("messages");
+ const div=document.createElement("div");
+ div.className="msg "+tipo;
+ div.textContent=texto;
+ area.appendChild(div);
+ area.scrollTop=area.scrollHeight;
+}
+
+function enviarChat(){
+ const campo=document.getElementById("mensagem");
+ const texto=campo.value.trim();
+ if(!texto)return;
+ campo.value="";
+ adicionarMensagem(texto,"user");
+
+ const t=texto.toLowerCase();
+ const mapa={
+  "verde musgo":"#747e62",
+  "verde":"#a3b18a",
+  "branco":"#ffffff",
+  "grafite":"#454b48",
+  "cinza":"#899daa",
+  "bege":"#d6c3a5",
+  "areia":"#d6c3a5",
+  "terracota":"#c78064",
+  "rosa":"#d8b8b1",
+  "preto":"#333333"
+ };
+ let cor=null;
+ for(const [nome,hex] of Object.entries(mapa)){
+  if(t.includes(nome)){cor=hex;break}
+ }
+ let alvo=null;
+ if(t.includes("parede"))alvo="parede";
+ else if(t.includes("teto"))alvo="teto";
+ else if(t.includes("piso")||t.includes("chão"))alvo="piso";
+ else if(t.includes("móve")||t.includes("sofá"))alvo="moveis";
+
+ if(cor&&alvo){
+  parte=alvo;
+  aplicarCor(cor);
+  adicionarMensagem(
+   "Pronto! Atualizei a cor na simulação. "+
+   "Abra a aba Personalizar para visualizar. "+
+   "Esta é uma demonstração, ainda sem IA real.",
+   "bot"
   );
-  const alturaTexto = document.getElementById("altura").value;
-  const altura = alturaTexto === "" ? null : Number(alturaTexto);
-  const estilo = document.getElementById("estilo").value;
-
-  if(!nome || !Number.isFinite(largura) ||
-     !Number.isFinite(comprimento) ||
-     largura <= 0 || comprimento <= 0 ||
-     (altura !== null &&
-      (!Number.isFinite(altura) || altura <= 0))) {
-    alert("Preencha o nome e informe medidas válidas.");
-    return;
-  }
-
-  const area = largura * comprimento;
-  atual = {
-    id: String(Date.now()) + "_" +
-      Math.random().toString(36).slice(2),
-    nome, tipo, largura, comprimento,
-    altura, estilo, area
-  };
-
-  const linhas = [
-    "📐 Área: " + area.toFixed(2) + " m²",
-    "🎨 Estilo: " + estilo,
-    "",
-    "Sugestões iniciais:",
-    ...sugestoes(tipo).map(s => "• " + s),
-    "",
-    "Atenção: ainda não verificamos portas,",
-    "janelas, circulação ou medidas dos móveis."
-  ];
-
-  const resultado = document.getElementById("resultado");
-  resultado.textContent = linhas.join("\n");
-  resultado.style.display = "block";
-  document.getElementById("salvarBtn").style.display = "inline-block";
-}
-
-function persistir() {
-  try {
-    localStorage.setItem(CHAVE, JSON.stringify(projetos));
-    return true;
-  } catch(e) {
-    alert("Não foi possível salvar no navegador.");
-    return false;
-  }
-}
-
-function salvar() {
-  if(!atual) return;
-
-  const novos = [...projetos, {...atual}];
-  const antigos = projetos;
-  projetos = novos;
-
-  if(!persistir()) {
-    projetos = antigos;
-    return;
-  }
-
-  atual = null;
-  document.getElementById("salvarBtn").style.display = "none";
-  alert("Ambiente salvo com sucesso!");
-  abrir("projetos");
-}
-
-function excluir(id) {
-  if(!confirm("Excluir este ambiente?")) return;
-
-  const antigos = projetos;
-  projetos = projetos.filter(p => p.id !== id);
-
-  if(!persistir()) projetos = antigos;
-  atualizar();
-}
-
-function atualizar() {
-  document.getElementById("total").textContent =
-    projetos.length;
-
-  const area = projetos.reduce(
-    (s,p) => s + (Number(p.area) || 0), 0
+ }else{
+  adicionarMensagem(
+   "Posso modificar as cores da simulação. "+
+   "Experimente: 'Quero a parede verde musgo' "+
+   "ou 'Deixe o teto branco'. "+
+   "A edição de fotos reais será adicionada "+
+   "quando conectarmos a IA.",
+   "bot"
   );
-
-  document.getElementById("areaTotal").textContent =
-    area.toFixed(2) + " m²";
-
-  const lista = document.getElementById("lista");
-  lista.replaceChildren();
-
-  if(projetos.length === 0) {
-    const p = document.createElement("p");
-    p.textContent = "Nenhum ambiente cadastrado ainda.";
-    lista.appendChild(p);
-    return;
-  }
-
-  projetos.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "item";
-
-    const titulo = document.createElement("strong");
-    titulo.textContent = p.nome;
-
-    const detalhes = document.createElement("p");
-    detalhes.textContent =
-      p.largura + " × " + p.comprimento +
-      " m | " + Number(p.area).toFixed(2) +
-      " m² | " + p.estilo;
-
-    const botao = document.createElement("button");
-    botao.className = "danger";
-    botao.textContent = "Excluir";
-    botao.addEventListener("click", () => excluir(p.id));
-
-    div.append(titulo, detalhes, botao);
-    lista.appendChild(div);
-  });
+ }
 }
 
-function responder(pergunta) {
-  const t = pergunta.toLowerCase();
-
-  if(t.includes("cozinha")) {
-    return "Para cozinhas pequenas, considere armários altos, bancadas compactas e organização vertical. Informe as medidas e a posição da porta para começarmos.";
-  }
-
-  if(t.includes("quarto") || t.includes("cama")) {
-    return "Para quartos, avalie camas com armazenamento, guarda-roupas de portas de correr e móveis sob medida. Precisamos conferir as medidas e a circulação.";
-  }
-
-  if(t.includes("sala") || t.includes("sofá")) {
-    return "Na sala, considere móveis multifuncionais, mesas extensíveis e painéis compactos. Evite bloquear portas e passagens.";
-  }
-
-  if(t.includes("banheiro")) {
-    return "No banheiro, armários suspensos e soluções verticais podem ajudar. Alterações hidráulicas precisam de avaliação técnica.";
-  }
-
-  if(t.includes("metro") || t.includes("medida") ||
-     t.includes("espaço")) {
-    return "Abra a aba Ambientes e informe largura e comprimento. Vou calcular a área e apresentar sugestões iniciais.";
-  }
-
-  return "Posso ajudar com ideias básicas para sala, quarto, cozinha e banheiro. Conte qual cômodo deseja planejar e quais são suas medidas. Nesta versão ainda não utilizo IA real.";
-}
-
-function mensagem(texto,classe) {
-  const chat = document.getElementById("chat");
-  const div = document.createElement("div");
-  div.className = "msg " + classe;
-  div.textContent = texto;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function enviar() {
-  const campo = document.getElementById("pergunta");
-  const texto = campo.value.trim();
-
-  if(!texto) return;
-
-  mensagem(texto,"user");
-  campo.value = "";
-  mensagem(responder(texto),"bot");
-}
-
-atualizar();
+atualizarCores();
 </script>
 </body>
 </html>
