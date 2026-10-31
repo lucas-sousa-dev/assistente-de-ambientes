@@ -1,0 +1,602 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+<title>Assistente de Ambientes</title>
+<style>
+:root{
+  --bg:#0b1220;
+  --panel:#172338;
+  --border:#30415a;
+  --blue:#38bdf8;
+  --text:#f1f5f9;
+  --muted:#a5b4c8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  padding:22px 16px;
+  background:#111c30;
+  border-bottom:1px solid var(--border);
+}
+header h1{
+  margin:0 0 8px;
+  font-size:24px;
+  color:var(--blue);
+}
+header p{margin:0;color:var(--muted)}
+nav{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:12px;
+  background:#111c30;
+}
+nav button{
+  white-space:nowrap;
+  background:#24344d;
+  color:white;
+  border:1px solid var(--border);
+}
+nav button.active{
+  background:#0369a1;
+  border-color:var(--blue);
+}
+main{
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+}
+section{display:none}
+section.active{display:block}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:16px;
+}
+h2{color:var(--blue);font-size:21px}
+h3{font-size:17px}
+p{line-height:1.55}
+label{
+  display:block;
+  margin:12px 0 6px;
+  color:var(--muted);
+}
+input,select,textarea{
+  width:100%;
+  padding:12px;
+  background:#0c1729;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font:inherit;
+}
+textarea{min-height:95px;resize:vertical}
+button{
+  padding:11px 15px;
+  border:0;
+  border-radius:9px;
+  cursor:pointer;
+  font-weight:bold;
+}
+.primary{
+  background:var(--blue);
+  color:#082032;
+  margin-top:14px;
+}
+.secondary{
+  background:#293d59;
+  color:white;
+  margin-top:10px;
+}
+.danger{
+  background:#7f1d1d;
+  color:white;
+  margin-top:10px;
+}
+button:focus-visible,input:focus-visible,
+select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:2px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.stat{
+  background:#0c1729;
+  padding:16px;
+  border-radius:10px;
+}
+.stat strong{
+  display:block;
+  font-size:23px;
+  color:var(--blue);
+  margin-top:8px;
+}
+.small{font-size:13px;color:var(--muted)}
+.result{
+  padding:14px;
+  background:#102b3c;
+  border-left:4px solid var(--blue);
+  border-radius:8px;
+  margin-top:15px;
+  white-space:pre-wrap;
+  line-height:1.6;
+}
+.chat{
+  height:310px;
+  overflow-y:auto;
+  background:#0c1729;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+.msg{
+  padding:12px;
+  margin:9px 0;
+  border-radius:10px;
+  line-height:1.5;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.user{background:#174d73;margin-left:15%}
+.bot{background:#27374e;margin-right:10%}
+.item{
+  padding:13px;
+  background:#0c1729;
+  border-radius:10px;
+  margin:10px 0;
+}
+.item strong{color:var(--blue)}
+footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  padding:25px;
+}
+@media(max-width:500px){
+  header h1{font-size:21px}
+  main{padding:12px}
+  .card{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏠 Assistente de Ambientes</h1>
+  <p>Planeje melhor. Aproveite cada espaço.</p>
+</header>
+
+<nav aria-label="Navegação principal">
+  <button class="active" data-tab="inicio">Início</button>
+  <button data-tab="ambientes">Ambientes</button>
+  <button data-tab="projetos">Projetos</button>
+  <button data-tab="assistente">Assistente</button>
+  <button data-tab="sobre">Sobre</button>
+</nav>
+
+<main>
+
+<section id="inicio" class="active">
+  <div class="card">
+    <h2>Bem-vindo ao seu planejador!</h2>
+    <p>
+      Organize seus ambientes, calcule medidas
+      e descubra ideias para aproveitar melhor
+      os espaços da sua casa.
+    </p>
+    <button class="primary" onclick="abrir('ambientes')">
+      Criar meu primeiro ambiente
+    </button>
+  </div>
+
+  <div class="grid">
+    <div class="stat">
+      Ambientes cadastrados
+      <strong id="total">0</strong>
+    </div>
+    <div class="stat">
+      Área total cadastrada
+      <strong id="areaTotal">0 m²</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>O que você pode fazer?</h3>
+    <p>📐 Calcular a metragem dos cômodos.</p>
+    <p>🛋️ Receber sugestões de organização.</p>
+    <p>💾 Salvar ambientes no dispositivo.</p>
+    <p>💬 Conversar com o assistente demonstrativo.</p>
+  </div>
+</section>
+
+<section id="ambientes">
+  <div class="card">
+    <h2>Cadastrar ambiente</h2>
+
+    <label for="nome">Nome do ambiente</label>
+    <input id="nome" placeholder="Ex.: Quarto principal">
+
+    <label for="tipo">Tipo de ambiente</label>
+    <select id="tipo">
+      <option value="sala">Sala</option>
+      <option value="quarto">Quarto</option>
+      <option value="cozinha">Cozinha</option>
+      <option value="banheiro">Banheiro</option>
+      <option value="escritorio">Escritório</option>
+      <option value="outro">Outro</option>
+    </select>
+
+    <label for="largura">Largura (metros)</label>
+    <input id="largura" type="number"
+      step="0.01" min="0.01" placeholder="Ex.: 2.50">
+
+    <label for="comprimento">Comprimento (metros)</label>
+    <input id="comprimento" type="number"
+      step="0.01" min="0.01" placeholder="Ex.: 3.20">
+
+    <label for="altura">Altura do teto (opcional)</label>
+    <input id="altura" type="number"
+      step="0.01" min="0.01" placeholder="Ex.: 2.70">
+
+    <label for="estilo">Estilo preferido</label>
+    <select id="estilo">
+      <option>Moderno</option>
+      <option>Minimalista</option>
+      <option>Clássico</option>
+      <option>Industrial</option>
+      <option>Contemporâneo</option>
+      <option>Econômico</option>
+    </select>
+
+    <button class="primary" onclick="calcular()">
+      Calcular e sugerir
+    </button>
+
+    <div id="resultado" class="result"
+      style="display:none" aria-live="polite"></div>
+
+    <button id="salvarBtn" class="secondary"
+      style="display:none" onclick="salvar()">
+      Salvar ambiente
+    </button>
+  </div>
+</section>
+
+<section id="projetos">
+  <div class="card">
+    <h2>Meus ambientes</h2>
+    <p class="small">
+      Os dados ficam salvos neste navegador.
+      Não são sincronizados com outros aparelhos.
+    </p>
+    <div id="lista"></div>
+  </div>
+</section>
+
+<section id="assistente">
+  <div class="card">
+    <h2>Assistente de decoração</h2>
+    <p class="small">
+      Versão demonstrativa, sem conexão com IA.
+      As respostas seguem regras predefinidas.
+    </p>
+
+    <div class="chat" id="chat" role="log"
+      aria-label="Conversa com o assistente">
+      <div class="msg bot">
+        Olá! 👋 Sou seu assistente de ambientes.
+
+        Posso apresentar ideias básicas para quartos,
+        salas, cozinhas e espaços pequenos.
+
+        Qual ambiente você deseja organizar?
+      </div>
+    </div>
+
+    <label for="pergunta">Sua mensagem</label>
+    <textarea id="pergunta"
+      placeholder="Ex.: Quero aproveitar melhor minha cozinha pequena"></textarea>
+
+    <button class="primary" onclick="enviar()">
+      Enviar mensagem
+    </button>
+  </div>
+</section>
+
+<section id="sobre">
+  <div class="card">
+    <h2>Sobre o projeto</h2>
+    <p>
+      Assistente de Ambientes é um projeto
+      de tecnologia para auxiliar pessoas
+      a planejar e organizar seus espaços.
+    </p>
+    <p>
+      Nossa proposta é unir praticidade,
+      decoração, medidas e inteligência
+      artificial em uma única plataforma.
+    </p>
+    <p><strong>Versão:</strong> 0.1</p>
+    <p><strong>Status:</strong> Protótipo inicial</p>
+    <p class="small">
+      As sugestões são preliminares e não
+      substituem projetos técnicos de
+      profissionais habilitados.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Assistente de Ambientes © 2026
+  <p>Projeto em desenvolvimento</p>
+</footer>
+
+<script>
+"use strict";
+
+const CHAVE = "assistente_ambientes_v1";
+let projetos = [];
+let atual = null;
+
+try {
+  const dados = JSON.parse(localStorage.getItem(CHAVE));
+  projetos = Array.isArray(dados) ? dados : [];
+} catch(e) {
+  projetos = [];
+}
+
+function abrir(id) {
+  document.querySelectorAll("main section")
+    .forEach(s => s.classList.remove("active"));
+
+  document.querySelectorAll("nav button")
+    .forEach(b => b.classList.remove("active"));
+
+  document.getElementById(id).classList.add("active");
+
+  const botao = document.querySelector(
+    'nav button[data-tab="' + id + '"]'
+  );
+  if(botao) botao.classList.add("active");
+
+  atualizar();
+  window.scrollTo(0,0);
+}
+
+document.querySelectorAll("nav button")
+  .forEach(botao => {
+    botao.addEventListener("click", () => {
+      abrir(botao.dataset.tab);
+    });
+  });
+
+function sugestoes(tipo) {
+  const ideias = {
+    sala: [
+      "Use móveis com armazenamento interno.",
+      "Considere um painel de TV pouco profundo.",
+      "Avalie mesas dobráveis ou extensíveis."
+    ],
+    quarto: [
+      "Considere guarda-roupas até o teto.",
+      "Avalie uma cama com gavetas ou baú.",
+      "Priorize a circulação ao redor da cama."
+    ],
+    cozinha: [
+      "Aproveite o espaço vertical com armários.",
+      "Avalie móveis planejados sob medida.",
+      "Respeite ventilação e instalação dos eletrodomésticos."
+    ],
+    banheiro: [
+      "Avalie armários suspensos.",
+      "Use nichos onde forem tecnicamente viáveis.",
+      "Evite bloquear acessos e áreas de circulação."
+    ],
+    escritorio: [
+      "Considere uma bancada compacta.",
+      "Use prateleiras para armazenamento.",
+      "Aproveite iluminação natural sem gerar reflexos."
+    ],
+    outro: [
+      "Priorize móveis multifuncionais.",
+      "Evite obstruir portas e janelas.",
+      "Aproveite espaços verticais."
+    ]
+  };
+  return ideias[tipo] || ideias.outro;
+}
+
+function calcular() {
+  const nome = document.getElementById("nome").value.trim();
+  const tipo = document.getElementById("tipo").value;
+  const largura = Number(document.getElementById("largura").value);
+  const comprimento = Number(
+    document.getElementById("comprimento").value
+  );
+  const alturaTexto = document.getElementById("altura").value;
+  const altura = alturaTexto === "" ? null : Number(alturaTexto);
+  const estilo = document.getElementById("estilo").value;
+
+  if(!nome || !Number.isFinite(largura) ||
+     !Number.isFinite(comprimento) ||
+     largura <= 0 || comprimento <= 0 ||
+     (altura !== null &&
+      (!Number.isFinite(altura) || altura <= 0))) {
+    alert("Preencha o nome e informe medidas válidas.");
+    return;
+  }
+
+  const area = largura * comprimento;
+  atual = {
+    id: String(Date.now()) + "_" +
+      Math.random().toString(36).slice(2),
+    nome, tipo, largura, comprimento,
+    altura, estilo, area
+  };
+
+  const linhas = [
+    "📐 Área: " + area.toFixed(2) + " m²",
+    "🎨 Estilo: " + estilo,
+    "",
+    "Sugestões iniciais:",
+    ...sugestoes(tipo).map(s => "• " + s),
+    "",
+    "Atenção: ainda não verificamos portas,",
+    "janelas, circulação ou medidas dos móveis."
+  ];
+
+  const resultado = document.getElementById("resultado");
+  resultado.textContent = linhas.join("\n");
+  resultado.style.display = "block";
+  document.getElementById("salvarBtn").style.display = "inline-block";
+}
+
+function persistir() {
+  try {
+    localStorage.setItem(CHAVE, JSON.stringify(projetos));
+    return true;
+  } catch(e) {
+    alert("Não foi possível salvar no navegador.");
+    return false;
+  }
+}
+
+function salvar() {
+  if(!atual) return;
+
+  const novos = [...projetos, {...atual}];
+  const antigos = projetos;
+  projetos = novos;
+
+  if(!persistir()) {
+    projetos = antigos;
+    return;
+  }
+
+  atual = null;
+  document.getElementById("salvarBtn").style.display = "none";
+  alert("Ambiente salvo com sucesso!");
+  abrir("projetos");
+}
+
+function excluir(id) {
+  if(!confirm("Excluir este ambiente?")) return;
+
+  const antigos = projetos;
+  projetos = projetos.filter(p => p.id !== id);
+
+  if(!persistir()) projetos = antigos;
+  atualizar();
+}
+
+function atualizar() {
+  document.getElementById("total").textContent =
+    projetos.length;
+
+  const area = projetos.reduce(
+    (s,p) => s + (Number(p.area) || 0), 0
+  );
+
+  document.getElementById("areaTotal").textContent =
+    area.toFixed(2) + " m²";
+
+  const lista = document.getElementById("lista");
+  lista.replaceChildren();
+
+  if(projetos.length === 0) {
+    const p = document.createElement("p");
+    p.textContent = "Nenhum ambiente cadastrado ainda.";
+    lista.appendChild(p);
+    return;
+  }
+
+  projetos.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "item";
+
+    const titulo = document.createElement("strong");
+    titulo.textContent = p.nome;
+
+    const detalhes = document.createElement("p");
+    detalhes.textContent =
+      p.largura + " × " + p.comprimento +
+      " m | " + Number(p.area).toFixed(2) +
+      " m² | " + p.estilo;
+
+    const botao = document.createElement("button");
+    botao.className = "danger";
+    botao.textContent = "Excluir";
+    botao.addEventListener("click", () => excluir(p.id));
+
+    div.append(titulo, detalhes, botao);
+    lista.appendChild(div);
+  });
+}
+
+function responder(pergunta) {
+  const t = pergunta.toLowerCase();
+
+  if(t.includes("cozinha")) {
+    return "Para cozinhas pequenas, considere armários altos, bancadas compactas e organização vertical. Informe as medidas e a posição da porta para começarmos.";
+  }
+
+  if(t.includes("quarto") || t.includes("cama")) {
+    return "Para quartos, avalie camas com armazenamento, guarda-roupas de portas de correr e móveis sob medida. Precisamos conferir as medidas e a circulação.";
+  }
+
+  if(t.includes("sala") || t.includes("sofá")) {
+    return "Na sala, considere móveis multifuncionais, mesas extensíveis e painéis compactos. Evite bloquear portas e passagens.";
+  }
+
+  if(t.includes("banheiro")) {
+    return "No banheiro, armários suspensos e soluções verticais podem ajudar. Alterações hidráulicas precisam de avaliação técnica.";
+  }
+
+  if(t.includes("metro") || t.includes("medida") ||
+     t.includes("espaço")) {
+    return "Abra a aba Ambientes e informe largura e comprimento. Vou calcular a área e apresentar sugestões iniciais.";
+  }
+
+  return "Posso ajudar com ideias básicas para sala, quarto, cozinha e banheiro. Conte qual cômodo deseja planejar e quais são suas medidas. Nesta versão ainda não utilizo IA real.";
+}
+
+function mensagem(texto,classe) {
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = "msg " + classe;
+  div.textContent = texto;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function enviar() {
+  const campo = document.getElementById("pergunta");
+  const texto = campo.value.trim();
+
+  if(!texto) return;
+
+  mensagem(texto,"user");
+  campo.value = "";
+  mensagem(responder(texto),"bot");
+}
+
+atualizar();
+</script>
+</body>
+</html>
