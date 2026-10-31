@@ -251,7 +251,7 @@ footer{
 
 <header>
  <div class="logo">⌂ Meu <span>Arquiteto IA</span></div>
- <div class="tag">BETA 0.3</div>
+ <div class="tag">BETA 0.4</div>
 </header>
 
 <nav>
@@ -314,10 +314,10 @@ footer{
  <p>Escolha como deseja mostrar seu espaço.</p>
 
  <div class="grid">
-  <div class="choice selected" data-mode="planta" onclick="escolher('planta')">
+  <div class="choice" data-mode="planta" onclick="escolher('planta')">
    <div class="emoji">📐</div>Planta
   </div>
-  <div class="choice" data-mode="foto" onclick="escolher('foto')">
+  <div class="choice selected" data-mode="foto" onclick="escolher('foto')">
    <div class="emoji">📷</div>Foto
   </div>
   <div class="choice" data-mode="video" onclick="escolher('video')">
@@ -336,12 +336,33 @@ footer{
    <small>Selecione um arquivo do celular</small>
   </div>
   <input id="arquivo" type="file" class="hidden"
-   accept="image/*,application/pdf"
+   accept="image/*"
    onchange="mostrarArquivo(event)">
+  <input id="captura" type="file" class="hidden" accept="image/*" capture="environment" onchange="mostrarArquivo(event)">
+  <div class="grid" style="margin-top:12px">
+   <button type="button" class="secondary" id="botaoCamera" onclick="document.getElementById('captura').click()">📷 Abrir câmera</button>
+   <button type="button" class="secondary" onclick="document.getElementById('arquivo').click()">📁 Escolher arquivo</button>
+  </div>
 
   <div id="arquivoInfo" class="muted" style="margin-top:10px"></div>
   <div id="visualArquivo"></div>
 
+  <label for="alcance">Qual parte deseja transformar?</label>
+  <select id="alcance">
+   <option value="parte">Uma parede ou parte específica</option>
+   <option value="inteiro">O ambiente inteiro</option>
+  </select>
+  <label>O que deseja adicionar?</label>
+  <div class="grid">
+   <button type="button" class="secondary" onclick="adicionarIdeia('armário')">🚪 Armário</button>
+   <button type="button" class="secondary" onclick="adicionarIdeia('prateleira')">📚 Prateleira</button>
+   <button type="button" class="secondary" onclick="adicionarIdeia('quadro')">🖼️ Quadro</button>
+   <button type="button" class="secondary" onclick="adicionarIdeia('painel de TV')">📺 Painel de TV</button>
+   <button type="button" class="secondary" onclick="adicionarIdeia('pintura')">🎨 Pintura</button>
+   <button type="button" class="secondary" onclick="adicionarIdeia('iluminação')">💡 Iluminação</button>
+  </div>
+  <label for="localAlvo">Onde exatamente? (opcional)</label>
+  <input id="localAlvo" placeholder="Ex.: parede vazia atrás do sofá">
   <label for="estilo">Qual estilo você prefere?</label>
   <select id="estilo">
    <option>Moderno</option>
@@ -362,7 +383,7 @@ footer{
    ✨ Preparar meu projeto
   </button>
   <p class="muted">
-   Nesta versão, o aplicativo salva o briefing.
+   Nesta versão, o aplicativo salva as instruções, mas não armazena a foto ou vídeo.
    A geração automática de imagens com IA
    será conectada posteriormente.
   </p>
@@ -458,13 +479,13 @@ footer{
 
 <footer>
  Meu Arquiteto IA © 2026
- <p>Protótipo de desenvolvimento • Versão 0.3</p>
+ <p>Protótipo de desenvolvimento • Versão 0.4</p>
 </footer>
 
 <script>
 "use strict";
 
-let modo="planta";
+let modo="foto";
 let parte="parede";
 let arquivoAtual=null;
 let arquivoURL=null;
@@ -511,6 +532,7 @@ function escolher(novo){
  });
  const input=document.getElementById("arquivo");
  input.value="";
+ document.getElementById("captura").value="";
  arquivoAtual=null;
  document.getElementById("visualArquivo").replaceChildren();
  document.getElementById("arquivoInfo").textContent="";
@@ -520,10 +542,19 @@ function escolher(novo){
   video:["video/*","Toque para gravar ou enviar vídeo"]
  };
  input.accept=tipos[modo][0];
+ const captura=document.getElementById("captura");
+ captura.accept=modo==="video"?"video/*":"image/*";
+ document.getElementById("botaoCamera").textContent=modo==="video"?"🎥 Gravar vídeo":"📷 Abrir câmera";
+ document.getElementById("alcance").value=modo==="video"?"inteiro":"parte";
  document.getElementById("uploadtxt").textContent=tipos[modo][1];
  if(arquivoURL){URL.revokeObjectURL(arquivoURL);arquivoURL=null}
 }
 
+function adicionarIdeia(ideia){
+ const campo=document.getElementById("descricao");
+ campo.value+=(campo.value.trim()?", ":"Quero adicionar ")+ideia;
+ campo.focus();
+}
 function mostrarArquivo(event){
  const file=event.target.files[0];
  if(!file)return;
@@ -563,19 +594,25 @@ function criarProjeto(){
   alert("Envie uma planta, foto ou vídeo.");
   return;
  }
+ if(!document.getElementById("descricao").value.trim()){
+  alert("Descreva o que deseja adicionar ou modificar.");
+  return;
+ }
  const projeto={
   id:Date.now()+"-"+Math.random().toString(36).slice(2),
   nome:nome,
   modo:modo,
   arquivo:arquivoAtual.name,
   estilo:document.getElementById("estilo").value,
-  descricao:document.getElementById("descricao").value,
+  descricao:document.getElementById("descricao").value.trim(),
+  alcance:document.getElementById("alcance").value,
+  localAlvo:document.getElementById("localAlvo").value.trim(),
   data:new Date().toLocaleDateString("pt-BR"),
   tipo:"briefing"
  };
  projetos.push(projeto);
  if(!persistir()){projetos.pop();return}
- alert("Projeto registrado! A geração por IA ainda será integrada.");
+ alert("Instruções salvas! Guarde a mídia original: a edição visual por IA ainda será integrada.");
  abrir("projetos");
 }
 
@@ -617,7 +654,14 @@ function listar(){
    if(!persistir())projetos=anteriores;
    listar();
   };
-  card.append(titulo,info,btn);
+  card.append(titulo,info);
+  if(p.tipo!=="cores"){
+   const detalhe=document.createElement("p");
+   detalhe.textContent=(p.alcance==="inteiro"?"Ambiente inteiro":"Parte específica")+
+    (p.localAlvo?" • "+p.localAlvo:"")+" — "+(p.descricao||"");
+   card.appendChild(detalhe);
+  }
+  card.appendChild(btn);
   if(p.tipo==="cores"){
    const ver=document.createElement("button");
    ver.className="secondary";
