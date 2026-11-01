@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meu-arquiteto-ia",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "ai": { "binding": "AI" }
+}
