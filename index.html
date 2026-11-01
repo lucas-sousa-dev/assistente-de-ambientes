@@ -379,6 +379,17 @@ footer{
   <textarea id="descricao" rows="3"
    placeholder="Ex.: Quero armários planejados e cores claras."></textarea>
 
+  <button class="primary" id="botaoIA" style="width:100%;margin-top:18px" onclick="editarComIA()">✨ Editar foto com IA (experimental)</button>
+  <div id="estadoIA" role="status" class="muted" style="margin-top:10px"></div>
+  <div id="painelIA" class="card hidden" style="margin-top:14px">
+   <h2>Resultado da IA</h2>
+   <p class="muted">Compare com a foto original. A IA ainda pode alterar áreas não solicitadas.</p>
+   <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+    <div><strong>Antes</strong><img id="fotoAntesIA" class="preview" alt="Foto original"></div>
+    <div><strong>Depois</strong><img id="fotoDepoisIA" class="preview" alt="Imagem editada pela IA"></div>
+   </div>
+   <a id="baixarIA" class="secondary" style="display:inline-block;margin-top:12px" download="meu-arquiteto-ia.png">⬇ Baixar resultado</a>
+  </div>
   <button class="primary" style="width:100%;margin-top:18px"
    onclick="criarProjeto()">
    ✨ Ver meu projeto
@@ -535,6 +546,39 @@ footer{
 
 <script>
 "use strict";
+const API_IA = "https://meu-arquiteto-ia.lucas-pvrj.workers.dev";
+async function editarComIA(){
+ const status=document.getElementById("estadoIA");
+ const botao=document.getElementById("botaoIA");
+ const painel=document.getElementById("painelIA");
+ painel.classList.add("hidden");
+ if(modo!=="foto" || !arquivoAtual || !["image/jpeg","image/png","image/webp"].includes(arquivoAtual.type)){
+  status.textContent="Selecione o modo Foto e envie uma imagem JPG, PNG ou WebP.";return;
+ }
+ const descricao=document.getElementById("descricao").value.trim();
+ if(!descricao){status.textContent="Escreva o que deseja modificar na fotografia.";return}
+ const alvo=document.getElementById("localAlvo").value.trim();
+ const alcance=document.getElementById("alcance").value;
+ const prompt=descricao+(alvo?". Local exato: "+alvo:"")+
+  (alcance==="parte"?". Altere somente a região especificada.":"");
+ const form=new FormData();
+ form.append("image",arquivoAtual,arquivoAtual.name);
+ form.append("prompt",prompt);
+ botao.disabled=true;status.textContent="Enviando foto e solicitando edição à IA...";
+ try{
+  const response=await fetch(API_IA+"/api/edit",{method:"POST",body:form});
+  const data=await response.json();
+  if(!response.ok)throw Error(data.error||"Não foi possível editar a imagem.");
+  if(!data.image || !data.image.startsWith("data:image/"))throw Error("Resposta de imagem inválida.");
+  document.getElementById("fotoAntesIA").src=arquivoURL;
+  document.getElementById("fotoDepoisIA").src=data.image;
+  document.getElementById("baixarIA").href=data.image;
+  painel.classList.remove("hidden");
+  status.textContent="Imagem gerada. Confira se o resultado corresponde ao pedido.";
+ }catch(e){status.textContent="Edição não concluída: "+e.message}
+ finally{botao.disabled=false}
+}
+
 
 let modo="foto";
 let parte="parede";
