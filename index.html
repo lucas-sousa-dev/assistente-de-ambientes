@@ -404,9 +404,13 @@ footer{
     <p class="muted">Escolha a cor, toque em <b>Ativar pintura por toque</b> e depois toque uma vez na parede da foto. O site tenta pintar os pixels vizinhos de cor parecida. Não usa IA.</p>
     <label for="corToque">Nova cor</label>
     <input id="corToque" type="color" value="#3988e6" style="height:55px;padding:5px">
+    <label for="toleranciaParede">Precisão da seleção (menor = mais restrita)</label>
+    <input id="toleranciaParede" type="range" min="12" max="55" value="26" step="2" style="width:100%" oninput="atualizarToleranciaParede()">
     <div class="grid" style="margin-top:10px">
      <button type="button" class="primary" onclick="ativarPinturaToque()">👆 Ativar pintura por toque</button>
      <button type="button" class="secondary" onclick="desfazerPinturaToque()">↶ Desfazer pintura</button>
+     <button type="button" class="primary" id="confirmarParede" onclick="confirmarPinturaToque()" disabled>✓ Confirmar área selecionada</button>
+     <button type="button" class="secondary" onclick="cancelarPinturaToque()">Cancelar seleção</button>
     </div>
     <p id="avisoToque" class="muted" role="status"></p>
    </div>
@@ -788,12 +792,14 @@ let pontosParede=[];
 let pinturas=[];
 let pinturaPorToque=false;
 let pinturasToque=[];
+let selecaoParede=null;
+let ultimoToqueParede=null;
 function carregarImagemPrevia(){
  return new Promise((resolve,reject)=>{
   if(!arquivoAtual||!arquivoAtual.type.startsWith("image/"))return reject(Error("Use uma foto para a prévia gratuita."));
   const img=new Image();
   const url=URL.createObjectURL(arquivoAtual);
-  img.onload=()=>{URL.revokeObjectURL(url);imagemBase=img;elementosVisuais=[];pontosParede=[];pinturas=[];pinturasToque=[];pinturaPorToque=false;marcandoParede=false;resolve()};
+  img.onload=()=>{URL.revokeObjectURL(url);imagemBase=img;elementosVisuais=[];pontosParede=[];pinturas=[];pinturasToque=[];selecaoParede=null;ultimoToqueParede=null;pinturaPorToque=false;marcandoParede=false;resolve()};
   img.onerror=()=>{URL.revokeObjectURL(url);reject(Error("Não foi possível abrir a foto."))};
   img.src=url;
  });
@@ -811,8 +817,12 @@ function desenharResultado(){
    for(let i=0;i<p.mascara.length;i++){
     if(!p.mascara[i])continue;
     const j=i*4;
-    // Mistura preservando parcialmente sombras e textura da foto.
-    for(let k=0;k<3;k++)frame.data[j+k]=Math.round(frame.data[j+k]*.34+rgb[k]*.66);
+    // Preserva a luminância e textura originais em vez de cobrir com tinta opaca.
+    const luz=(frame.data[j]*.2126+frame.data[j+1]*.7152+frame.data[j+2]*.0722)/190;
+    for(let k=0;k<3;k++){
+     const alvo=Math.min(255,rgb[k]*Math.max(.35,Math.min(1.25,luz)));
+     frame.data[j+k]=Math.round(frame.data[j+k]*.25+alvo*.75);
+    }
    }
   }
   ctx.putImageData(frame,0,0);
@@ -824,6 +834,17 @@ function desenharResultado(){
   ctx.closePath();ctx.clip();
   ctx.fillStyle=pintura.cor;ctx.globalAlpha=.62;
   ctx.fillRect(0,0,c.width,c.height);ctx.restore();
+ }
+ if(selecaoParede){
+  const overlay=ctx.getImageData(0,0,c.width,c.height);
+  for(let i=0;i<selecaoParede.mascara.length;i++){
+   if(!selecaoParede.mascara[i])continue;
+   const j=i*4;
+   overlay.data[j]=Math.round(overlay.data[j]*.65);
+   overlay.data[j+1]=Math.round(overlay.data[j+1]*.65+230*.35);
+   overlay.data[j+2]=Math.round(overlay.data[j+2]*.65+250*.35);
+  }
+  ctx.putImageData(overlay,0,0);
  }
  ctx.textAlign="center";ctx.textBaseline="middle";
  ctx.font=Math.max(28,Math.round(c.width*.085))+"px sans-serif";
@@ -837,34 +858,47 @@ function desenharResultado(){
   ctx.restore();
  }
 }
+function cancelarPinturaToque(){
+ selecaoParede=null;ultimoToqueParede=null;pinturaPorToque=false;
+ document.getElementById("confirmarParede").disabled=true;desenharResultado();
+ document.getElementById("avisoToque").textContent="Seleção cancelada. A foto não foi modificada.";
+}
 function ativarPinturaToque(){
  if(!imagemBase){document.getElementById("avisoToque").textContent="Crie primeiro a prévia com uma foto.";return}
+ selecaoParede=null;ultimoToqueParede=null;
+ document.getElementById("confirmarParede").disabled=true;
  pinturaPorToque=true;marcandoParede=false;elementoPendente=null;pontosParede=[];
  desenharResultado();
- document.getElementById("avisoToque").textContent="Agora toque UMA vez no meio de uma parte livre da parede na fotografia.";
+ document.getElementById("avisoToque").textContent="Toque numa área livre da parede. A seleção ficará destacada antes de pintar.";
  document.getElementById("telaResultado").scrollIntoView({behavior:"smooth",block:"center"});
 }
 function desfazerPinturaToque(){
+ if(selecaoParede){cancelarPinturaToque();return}
  pinturasToque.pop();pinturaPorToque=false;desenharResultado();
- document.getElementById("avisoToque").textContent="Última pintura por toque removida.";
+ document.getElementById("avisoToque").textContent="Última pintura removida.";
+}
+function atualizarToleranciaParede(){
+ if(ultimoToqueParede)pintarNoPonto(ultimoToqueParede.x,ultimoToqueParede.y);
+}
+function confirmarPinturaToque(){
+ if(!selecaoParede)return;
+ pinturasToque.push({mascara:selecaoParede.mascara,cor:document.getElementById("corToque").value});
+ selecaoParede=null;ultimoToqueParede=null;pinturaPorToque=false;
+ document.getElementById("confirmarParede").disabled=true;desenharResultado();
+ document.getElementById("avisoToque").textContent="Pintura aplicada! Se atingiu o quadro ou teto, toque em Desfazer pintura.";
 }
 function pintarNoPonto(x,y){
- const c=document.getElementById("telaResultado");
- const w=c.width,h=c.height;
- // Sempre calcula a máscara sobre a foto original, evitando capturar anotações.
+ const c=document.getElementById("telaResultado"),w=c.width,h=c.height;
  const base=document.createElement("canvas");base.width=w;base.height=h;
  const ctx=base.getContext("2d",{willReadFrequently:true});
  ctx.drawImage(imagemBase,0,0,w,h);
  const data=ctx.getImageData(0,0,w,h).data;
- const sx=Math.max(0,Math.min(w-1,Math.floor(x*w)));
- const sy=Math.max(0,Math.min(h-1,Math.floor(y*h)));
- const start=(sy*w+sx)*4;
- const seed=[data[start],data[start+1],data[start+2]];
+ const sx=Math.max(0,Math.min(w-1,Math.floor(x*w))),sy=Math.max(0,Math.min(h-1,Math.floor(y*h)));
+ const start=(sy*w+sx)*4,seed=[data[start],data[start+1],data[start+2]];
  const size=w*h,visited=new Uint8Array(size),mask=new Uint8Array(size);
  const queue=new Int32Array(size);let head=0,tail=0,count=0;
  const origin=sy*w+sx;queue[tail++]=origin;visited[origin]=1;
- // Tolerância moderada: regiões contínuas e cores próximas do ponto escolhido.
- const limite=58;
+ const limite=Number(document.getElementById("toleranciaParede").value);
  while(head<tail){
   const pos=queue[head++],j=pos*4;
   const diff=Math.max(Math.abs(data[j]-seed[0]),Math.abs(data[j+1]-seed[1]),Math.abs(data[j+2]-seed[2]));
@@ -874,12 +908,17 @@ function pintarNoPonto(x,y){
   const vizinhos=[px>0?pos-1:-1,px<w-1?pos+1:-1,py>0?pos-w:-1,py<h-1?pos+w:-1];
   for(const next of vizinhos)if(next>=0&&!visited[next]){visited[next]=1;queue[tail++]=next}
  }
+ ultimoToqueParede={x,y};
  const aviso=document.getElementById("avisoToque");
- if(count<25){aviso.textContent="A área encontrada é pequena. Toque em uma parte mais uniforme da parede.";return}
- if(count>size*.48){aviso.textContent="A seleção ficou grande demais. Tente tocar em outro ponto da parede, longe do teto e dos móveis.";return}
- pinturasToque.push({mascara:mask,cor:document.getElementById("corToque").value});
- pinturaPorToque=false;desenharResultado();
- aviso.textContent="Cor aplicada a "+Math.round(count/size*100)+"% da imagem. Se atingir algum objeto, toque em Desfazer e tente outro ponto.";
+ if(count<25||count>size*.40){
+  selecaoParede=null;document.getElementById("confirmarParede").disabled=true;desenharResultado();
+  aviso.textContent=count<25?"Área muito pequena. Aumente um pouco a precisão ou toque em outro ponto.":"Área grande demais. Reduza a tolerância ou toque em outra parte da parede.";
+  return;
+ }
+ selecaoParede={mascara:mask};pinturaPorToque=true;
+ document.getElementById("confirmarParede").disabled=false;
+ desenharResultado();
+ aviso.textContent="Área destacada em azul-claro ("+Math.round(count/size*100)+"% da foto). Se estiver correta, toque em Confirmar. Se incluir o quadro, reduza a tolerância ou toque em outro ponto.";
 }
 function iniciarPintura(){
  if(!imagemBase)return;
