@@ -251,7 +251,7 @@ footer{
 
 <header>
  <div class="logo">⌂ Meu <span>Arquiteto IA</span></div>
- <div class="tag">BETA 0.4</div>
+ <div class="tag">BETA 0.5</div>
 </header>
 
 <nav>
@@ -310,7 +310,7 @@ footer{
 </section>
 
 <section id="criar">
- <h2>Vamos transformar seu ambiente</h2>
+ <h2>Transforme seu ambiente em 3 passos</h2><p>1. Envie uma foto • 2. Conte sua ideia • 3. Veja uma prévia</p>
  <p>Escolha como deseja mostrar seu espaço.</p>
 
  <div class="grid">
@@ -380,8 +380,25 @@ footer{
 
   <button class="primary" style="width:100%;margin-top:18px"
    onclick="criarProjeto()">
-   ✨ Preparar meu projeto
+   ✨ Ver meu projeto
   </button>
+  <p class="muted">Teste grátis: crie uma prévia ilustrativa sobre a sua foto, adicione elementos e baixe. A transformação realista por IA será uma função profissional futura. Vídeos ainda não podem ser editados automaticamente.</p>
+  <div id="resultado" class="card hidden" style="margin-top:16px">
+   <h2>Prévia do seu projeto</h2>
+   <p class="muted">Esta é uma montagem ilustrativa, não uma edição realista por IA. Toque na imagem para posicionar o elemento selecionado.</p>
+   <canvas id="telaResultado" style="width:100%;border-radius:12px;touch-action:manipulation;background:#edf1e9"></canvas>
+   <label for="elementoVisual">Adicionar elemento ilustrativo</label>
+   <select id="elementoVisual">
+    <option value="🛋️">Sofá</option><option value="🗄️">Armário</option><option value="📚">Prateleira</option>
+    <option value="🖼️">Quadro</option><option value="🪴">Planta</option><option value="💡">Luminária</option>
+   </select>
+   <div class="grid" style="margin-top:10px">
+    <button type="button" class="secondary" onclick="inserirElemento()">+ Adicionar</button>
+    <button type="button" class="secondary" onclick="desfazerElemento()">↶ Desfazer</button>
+    <button type="button" class="secondary" onclick="baixarPrevia()">⬇ Baixar imagem</button>
+   </div>
+   <p id="resultadoAviso" class="muted"></p>
+  </div>
   <p class="muted">
    Nesta versão, o aplicativo salva as instruções, mas não armazena a foto ou vídeo.
    A geração automática de imagens com IA
@@ -479,7 +496,7 @@ footer{
 
 <footer>
  Meu Arquiteto IA © 2026
- <p>Protótipo de desenvolvimento • Versão 0.4</p>
+ <p>Protótipo de desenvolvimento • Versão 0.5</p>
 </footer>
 
 <script>
@@ -565,6 +582,8 @@ function mostrarArquivo(event){
  arquivoURL=URL.createObjectURL(file);
  document.getElementById("arquivoInfo").textContent=file.name;
 
+ document.getElementById("resultado").classList.add("hidden");
+ document.getElementById("telaResultado").style.display="block";
  if(file.type.startsWith("image/")){
   const img=document.createElement("img");
   img.src=arquivoURL;
@@ -584,7 +603,54 @@ function mostrarArquivo(event){
  }
 }
 
-function criarProjeto(){
+let imagemBase=null;
+let elementosVisuais=[];
+let elementoPendente=null;
+function carregarImagemPrevia(){
+ return new Promise((resolve,reject)=>{
+  if(!arquivoAtual||!arquivoAtual.type.startsWith("image/"))return reject(Error("Use uma foto para a prévia gratuita."));
+  const img=new Image();
+  const url=URL.createObjectURL(arquivoAtual);
+  img.onload=()=>{URL.revokeObjectURL(url);imagemBase=img;elementosVisuais=[];resolve()};
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(Error("Não foi possível abrir a foto."))};
+  img.src=url;
+ });
+}
+function desenharResultado(){
+ const c=document.getElementById("telaResultado"),ctx=c.getContext("2d");
+ if(!imagemBase)return;
+ const escala=Math.min(1,1100/imagemBase.width,1100/imagemBase.height);
+ c.width=Math.round(imagemBase.width*escala);c.height=Math.round(imagemBase.height*escala);
+ ctx.drawImage(imagemBase,0,0,c.width,c.height);
+ if(document.getElementById("descricao").value.toLowerCase().includes("cinza")||
+    document.getElementById("descricao").value.toLowerCase().includes("cinzento")){
+  ctx.fillStyle="rgba(110,110,110,0.12)";ctx.fillRect(0,0,c.width,c.height);
+ }
+ ctx.textAlign="center";ctx.textBaseline="middle";
+ ctx.font=Math.max(28,Math.round(c.width*.085))+"px sans-serif";
+ elementosVisuais.forEach(e=>ctx.fillText(e.icone,e.x*c.width,e.y*c.height));
+}
+function inserirElemento(){
+ if(!imagemBase)return;
+ elementoPendente=document.getElementById("elementoVisual").value;
+ document.getElementById("resultadoAviso").textContent="Agora toque no lugar da foto onde deseja colocar o elemento.";
+}
+function desfazerElemento(){elementosVisuais.pop();desenharResultado()}
+function baixarPrevia(){
+ if(!imagemBase)return;
+ const a=document.createElement("a");
+ a.download="meu-arquiteto-previa.png";
+ a.href=document.getElementById("telaResultado").toDataURL("image/png");
+ a.click();
+}
+document.getElementById("telaResultado").addEventListener("click",e=>{
+ if(!elementoPendente)return;
+ const r=e.currentTarget.getBoundingClientRect();
+ elementosVisuais.push({icone:elementoPendente,x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height});
+ elementoPendente=null;desenharResultado();
+ document.getElementById("resultadoAviso").textContent="Elemento ilustrativo posicionado. Você pode adicionar outros ou baixar.";
+});
+async function criarProjeto(){
  const nome=document.getElementById("nome").value.trim();
  if(!nome){
   alert("Dê um nome ao projeto.");
@@ -612,8 +678,20 @@ function criarProjeto(){
  };
  projetos.push(projeto);
  if(!persistir()){projetos.pop();return}
- alert("Instruções salvas! Guarde a mídia original: a edição visual por IA ainda será integrada.");
- abrir("projetos");
+ abrir("criar");
+ const painel=document.getElementById("resultado");
+ painel.classList.remove("hidden");
+ const aviso=document.getElementById("resultadoAviso");
+ if(arquivoAtual.type.startsWith("image/")){
+  try{
+   await carregarImagemPrevia();desenharResultado();
+   aviso.textContent="Projeto registrado. Prévia ilustrativa pronta para personalizar e baixar. A foto não é armazenada no projeto salvo.";
+  }catch(e){aviso.textContent=e.message}
+ }else{
+  document.getElementById("telaResultado").style.display="none";
+  aviso.textContent="Projeto de vídeo registrado. A prévia visual requer uma foto; edição automática de vídeo ainda não está disponível.";
+ }
+ painel.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function persistir(){
