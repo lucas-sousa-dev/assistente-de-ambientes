@@ -251,13 +251,14 @@ footer{
 
 <header>
  <div class="logo">⌂ Meu <span>Arquiteto IA</span></div>
- <div class="tag">BETA 0.5</div>
+ <div class="tag">BETA 0.6</div>
 </header>
 
 <nav>
  <button class="active" data-page="inicio">Início</button>
  <button data-page="criar">Criar projeto</button>
  <button data-page="personalizar">Personalizar</button>
+ <button data-page="medir">📏 Medir espaço</button>
  <button data-page="projetos">Meus projetos</button>
 </nav>
 
@@ -460,6 +461,39 @@ footer{
  </div>
 </section>
 
+<section id="medir">
+ <h2>📏 Meu espaço cabe?</h2>
+ <p>Informe as medidas do espaço e do móvel para saber se cabe. Medidas em centímetros.</p>
+ <div class="card">
+  <h3>1. Espaço disponível</h3>
+  <div class="grid">
+   <div><label for="espL">Largura (cm)</label><input id="espL" type="number" min="1" step="0.1" placeholder="120"></div>
+   <div><label for="espP">Profundidade (cm)</label><input id="espP" type="number" min="1" step="0.1" placeholder="70"></div>
+   <div><label for="espA">Altura (cm)</label><input id="espA" type="number" min="1" step="0.1" placeholder="250"></div>
+  </div>
+  <h3>2. Móvel ou eletrodoméstico</h3>
+  <label for="itemMedido">O que você quer colocar?</label>
+  <select id="itemMedido">
+   <option value="Máquina de lavar">Máquina de lavar</option><option value="Geladeira">Geladeira</option>
+   <option value="Armário">Armário</option><option value="Sofá">Sofá</option><option value="Outro móvel">Outro móvel</option>
+  </select>
+  <div class="grid">
+   <div><label for="movL">Largura (cm)</label><input id="movL" type="number" min="1" step="0.1" placeholder="60"></div>
+   <div><label for="movP">Profundidade (cm)</label><input id="movP" type="number" min="1" step="0.1" placeholder="65"></div>
+   <div><label for="movA">Altura (cm)</label><input id="movA" type="number" min="1" step="0.1" placeholder="85"></div>
+  </div>
+  <label for="folgaMedida">Folga mínima desejada em cada dimensão (cm)</label>
+  <input id="folgaMedida" type="number" min="0" step="1" value="5">
+  <button class="primary" style="width:100%;margin-top:15px" onclick="verificarMedidas()">📐 Verificar se cabe</button>
+  <div id="resultadoMedidas" class="card hidden" role="status" style="margin-top:15px"></div>
+  <p class="muted">Use medidas reais do produto e confirme folgas de ventilação, portas, instalação e circulação. A comparação não substitui uma medição com trena.</p>
+ </div>
+ <div class="card">
+  <h3>📷 Medição com câmera</h3>
+  <p>A medição automática por realidade aumentada está em desenvolvimento. Por enquanto, use uma trena e informe as medidas acima. Não calculamos metros a partir de uma foto comum.</p>
+  <button class="secondary" onclick="abrir('criar')">Criar projeto com foto</button>
+ </div>
+</section>
 <section id="projetos">
  <h2>Meus projetos</h2>
  <p>Seus projetos e combinações salvos neste navegador.</p>
@@ -496,7 +530,7 @@ footer{
 
 <footer>
  Meu Arquiteto IA © 2026
- <p>Protótipo de desenvolvimento • Versão 0.5</p>
+ <p>Protótipo de desenvolvimento • Versão 0.6</p>
 </footer>
 
 <script>
@@ -542,6 +576,24 @@ document.querySelectorAll("nav button").forEach(b=>{
  b.onclick=()=>abrir(b.dataset.page);
 });
 
+function verificarMedidas(){
+ const ids=["espL","espP","espA","movL","movP","movA"];
+ const vals=ids.map(id=>Number(document.getElementById(id).value));
+ const folga=Number(document.getElementById("folgaMedida").value);
+ const out=document.getElementById("resultadoMedidas");
+ out.classList.remove("hidden");
+ if(ids.some((id,i)=>!document.getElementById(id).value||!Number.isFinite(vals[i])||vals[i]<=0)||!Number.isFinite(folga)||folga<0){
+  out.textContent="Preencha todas as medidas com valores positivos.";
+  return;
+ }
+ const sobra=vals.slice(0,3).map((v,i)=>v-vals[i+3]);
+ const cabe=sobra.every(v=>v>=folga);
+ const item=document.getElementById("itemMedido").value;
+ out.textContent=(cabe?"✅ Pelas dimensões informadas, cabe com a folga indicada.":"⚠️ Não cabe com a folga indicada.")+
+  " "+item+": sobram "+sobra.map(v=>v.toFixed(1)).join(" × ")+" cm (largura × profundidade × altura)."+
+  " Área do piso disponível: "+(vals[0]*vals[1]/10000).toFixed(2)+" m²."+
+  " Confira portas, mangueiras, tomadas, ventilação e espaço de uso antes de comprar.";
+}
 function escolher(novo){
  modo=novo;
  document.querySelectorAll("[data-mode]").forEach(el=>{
