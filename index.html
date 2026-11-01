@@ -409,6 +409,10 @@ footer{
      </div>
      <label for="faixaMatiz">Deslize para escolher qualquer cor</label>
      <input id="faixaMatiz" type="range" min="0" max="360" value="215" step="1" style="padding:0;height:28px;appearance:none;-webkit-appearance:none;border:0;border-radius:14px;background:linear-gradient(to right,red,#ff0,lime,cyan,blue,magenta,red)" oninput="atualizarPaletaPorControle()">
+     <p class="muted" style="margin:10px 0 4px">Deslize no quadrado acima: esquerda = branco/cinza, direita = cor intensa, baixo = escuro/preto.</p>
+     <label for="buscaCor">Buscar cor pelo nome</label>
+     <input id="buscaCor" type="search" placeholder="Ex.: bege, vinho, cinza, amarelo queimado" oninput="filtrarCoresProntas()">
+     <div id="coresProntas" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:12px;max-height:220px;overflow-y:auto"></div>
      <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
       <div id="amostraCorToque" style="height:48px;width:60px;flex:none;border-radius:10px;border:1px solid #aeb6ae;background:#3988e6"></div>
       <div style="flex:1">
@@ -902,6 +906,32 @@ function atualizarCorPorSeletor(){
  document.getElementById("codigoCorToque").value=v.toUpperCase();
  document.getElementById("amostraCorToque").style.background=v;
 }
+const coresNomeadas=[
+ ["Preto","#000000"],["Branco","#FFFFFF"],["Cinza claro","#D3D3D3"],["Cinza médio","#808080"],["Cinza escuro","#404040"],["Grafite","#30343B"],["Gelo","#F2F5F5"],
+ ["Bege","#F5F5DC"],["Areia","#DCC9A3"],["Creme","#FFFDD0"],["Marfim","#FFFFF0"],["Palha","#E8D8AD"],["Off-white","#F8F6F0"],["Taupe","#8B7D6B"],
+ ["Marrom claro","#A67B5B"],["Marrom","#795548"],["Chocolate","#5D4037"],["Café","#4B3621"],["Caramelo","#C68E53"],["Terracota","#C66B4E"],
+ ["Vermelho","#FF0000"],["Vermelho escuro","#8B0000"],["Vinho","#722F37"],["Bordô","#800020"],["Cereja","#D2042D"],["Rosa","#FFC0CB"],["Rosa antigo","#C08081"],
+ ["Salmão","#FA8072"],["Coral","#FF7F50"],["Pêssego","#FFDAB9"],["Laranja","#FFA500"],["Laranja queimado","#CC5500"],
+ ["Amarelo","#FFFF00"],["Amarelo claro","#FFF59D"],["Amarelo queimado","#D4A017"],["Mostarda","#C49A00"],["Dourado","#D4AF37"],["Sol","#FFD54F"],
+ ["Verde claro","#90EE90"],["Verde oliva","#808000"],["Verde musgo","#556B2F"],["Verde sage","#A3B18A"],["Verde esmeralda","#50C878"],
+ ["Azul claro","#ADD8E6"],["Azul céu","#87CEEB"],["Azul royal","#4169E1"],["Azul marinho","#000080"],["Azul petróleo","#006B75"],
+ ["Lilás","#C8A2C8"],["Lavanda","#E6E6FA"],["Roxo","#800080"],["Berinjela","#614051"]
+];
+function filtrarCoresProntas(){
+ const busca=(document.getElementById("buscaCor").value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+ const area=document.getElementById("coresProntas");area.replaceChildren();
+ for(const [nome,hex] of coresNomeadas){
+  if(!nome.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().includes(busca))continue;
+  const btn=document.createElement("button");btn.type="button";btn.title=nome+" "+hex;
+  btn.style.cssText="min-height:70px;padding:6px 2px;border:1px solid #c6cec4;border-radius:10px;background:white;color:#303a35;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:center";
+  const swatch=document.createElement("span");swatch.style.cssText="width:32px;height:32px;border:1px solid #999;border-radius:50%;background:"+hex;
+  const label=document.createElement("span");label.textContent=nome;
+  btn.append(swatch,label);
+  btn.onclick=()=>{aplicarCorDaPaleta(hex);document.getElementById("buscaCor").value=nome};
+  area.appendChild(btn);
+ }
+}
+filtrarCoresProntas();
 const areaPaleta=document.getElementById("areaPaleta");
 let arrastandoPaleta=false;
 function moverPaleta(e){
