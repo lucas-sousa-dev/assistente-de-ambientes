@@ -399,6 +399,19 @@ footer{
    <h2>Prévia do seu projeto</h2>
    <p class="muted">Esta é uma montagem ilustrativa, não uma edição realista por IA. Toque na imagem para posicionar o elemento selecionado.</p>
    <canvas id="telaResultado" style="width:100%;border-radius:12px;touch-action:manipulation;background:#edf1e9"></canvas>
+   <div class="card" style="margin-top:12px">
+    <strong>🎨 Pintar parede manualmente</strong>
+    <p class="muted">Toque nos cantos da parede, em sequência, para contornar a área. Use pelo menos 3 pontos e depois toque em Aplicar pintura. Não precisa de IA.</p>
+    <label for="corParedeFoto">Cor da parede</label>
+    <input type="color" id="corParedeFoto" value="#6699dd" style="height:55px;padding:5px">
+    <div class="grid" style="margin-top:10px">
+     <button type="button" class="secondary" onclick="iniciarPintura()">📍 Marcar parede</button>
+     <button type="button" class="secondary" onclick="desfazerPonto()">↶ Desfazer ponto</button>
+     <button type="button" class="primary" onclick="aplicarPintura()">🎨 Aplicar pintura</button>
+     <button type="button" class="secondary" onclick="desfazerPintura()">Remover pintura</button>
+    </div>
+    <p id="avisoPintura" class="muted"></p>
+   </div>
    <label for="elementoVisual">Adicionar elemento ilustrativo</label>
    <select id="elementoVisual">
     <option value="🛋️">Sofá</option><option value="🗄️">Armário</option><option value="📚">Prateleira</option>
@@ -759,12 +772,15 @@ async function exibirFotoSalva(id,container){
 let imagemBase=null;
 let elementosVisuais=[];
 let elementoPendente=null;
+let marcandoParede=false;
+let pontosParede=[];
+let pinturas=[];
 function carregarImagemPrevia(){
  return new Promise((resolve,reject)=>{
   if(!arquivoAtual||!arquivoAtual.type.startsWith("image/"))return reject(Error("Use uma foto para a prévia gratuita."));
   const img=new Image();
   const url=URL.createObjectURL(arquivoAtual);
-  img.onload=()=>{URL.revokeObjectURL(url);imagemBase=img;elementosVisuais=[];resolve()};
+  img.onload=()=>{URL.revokeObjectURL(url);imagemBase=img;elementosVisuais=[];pontosParede=[];pinturas=[];marcandoParede=false;resolve()};
   img.onerror=()=>{URL.revokeObjectURL(url);reject(Error("Não foi possível abrir a foto."))};
   img.src=url;
  });
@@ -775,13 +791,44 @@ function desenharResultado(){
  const escala=Math.min(1,1100/imagemBase.width,1100/imagemBase.height);
  c.width=Math.round(imagemBase.width*escala);c.height=Math.round(imagemBase.height*escala);
  ctx.drawImage(imagemBase,0,0,c.width,c.height);
- if(document.getElementById("descricao").value.toLowerCase().includes("cinza")||
-    document.getElementById("descricao").value.toLowerCase().includes("cinzento")){
-  ctx.fillStyle="rgba(110,110,110,0.12)";ctx.fillRect(0,0,c.width,c.height);
+ // Pintura restrita ao polígono escolhido, sem aplicar filtros globais.
+ for(const pintura of pinturas){
+  ctx.save();ctx.beginPath();
+  pintura.pontos.forEach((p,i)=>i?ctx.lineTo(p.x*c.width,p.y*c.height):ctx.moveTo(p.x*c.width,p.y*c.height));
+  ctx.closePath();ctx.clip();
+  ctx.fillStyle=pintura.cor;ctx.globalAlpha=.62;
+  ctx.fillRect(0,0,c.width,c.height);ctx.restore();
  }
  ctx.textAlign="center";ctx.textBaseline="middle";
  ctx.font=Math.max(28,Math.round(c.width*.085))+"px sans-serif";
  elementosVisuais.forEach(e=>ctx.fillText(e.icone,e.x*c.width,e.y*c.height));
+ if(marcandoParede&&pontosParede.length){
+  ctx.save();ctx.strokeStyle="#00e5ff";ctx.fillStyle="#00e5ff";
+  ctx.lineWidth=Math.max(3,c.width/250);ctx.beginPath();
+  pontosParede.forEach((p,i)=>i?ctx.lineTo(p.x*c.width,p.y*c.height):ctx.moveTo(p.x*c.width,p.y*c.height));
+  ctx.stroke();
+  pontosParede.forEach(p=>{ctx.beginPath();ctx.arc(p.x*c.width,p.y*c.height,Math.max(5,c.width/140),0,Math.PI*2);ctx.fill()});
+  ctx.restore();
+ }
+}
+function iniciarPintura(){
+ if(!imagemBase)return;
+ marcandoParede=true;pontosParede=[];elementoPendente=null;desenharResultado();
+ document.getElementById("avisoPintura").textContent="Toque nos cantos da parede, seguindo o contorno. Depois toque em Aplicar pintura.";
+}
+function desfazerPonto(){
+ if(!marcandoParede)return;pontosParede.pop();desenharResultado();
+}
+function aplicarPintura(){
+ const aviso=document.getElementById("avisoPintura");
+ if(!marcandoParede||pontosParede.length<3){aviso.textContent="Marque pelo menos 3 cantos da parede antes de aplicar.";return}
+ pinturas.push({pontos:pontosParede.map(p=>({...p})),cor:document.getElementById("corParedeFoto").value});
+ pontosParede=[];marcandoParede=false;desenharResultado();
+ aviso.textContent="Pintura aplicada somente na região marcada. Você pode baixar a imagem ou marcar outra área.";
+}
+function desfazerPintura(){
+ pinturas.pop();pontosParede=[];marcandoParede=false;desenharResultado();
+ document.getElementById("avisoPintura").textContent="Última pintura removida.";
 }
 function inserirElemento(){
  if(!imagemBase)return;
@@ -797,8 +844,14 @@ function baixarPrevia(){
  a.click();
 }
 document.getElementById("telaResultado").addEventListener("click",e=>{
- if(!elementoPendente)return;
+ if(!elementoPendente&&!marcandoParede)return;
  const r=e.currentTarget.getBoundingClientRect();
+ if(marcandoParede){
+  pontosParede.push({x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))});
+  desenharResultado();
+  document.getElementById("avisoPintura").textContent=pontosParede.length+" ponto(s) marcados. Contorne a parede e toque em Aplicar pintura.";
+  return;
+ }
  elementosVisuais.push({icone:elementoPendente,x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height});
  elementoPendente=null;desenharResultado();
  document.getElementById("resultadoAviso").textContent="Elemento ilustrativo posicionado. Você pode adicionar outros ou baixar.";
