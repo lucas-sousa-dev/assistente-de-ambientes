@@ -412,7 +412,7 @@ footer{
    <p id="resultadoAviso" class="muted"></p>
   </div>
   <p class="muted">
-   Nesta versão, o aplicativo salva as instruções, mas não armazena a foto ou vídeo.
+   Nesta versão, o aplicativo salva as instruções e o arquivo no navegador deste aparelho. Não há sincronização entre dispositivos; limpar os dados do site pode apagar as fotos.
    A geração automática de imagens com IA
    será conectada posteriormente.
   </p>
@@ -699,6 +699,63 @@ function mostrarArquivo(event){
  }
 }
 
+
+// Fotos dos projetos ficam no IndexedDB do navegador, não no localStorage.
+const bancoFotos = new Promise((resolve,reject)=>{
+ if(!("indexedDB" in window)){reject(Error("Este navegador não suporta armazenamento de fotos."));return}
+ const req=indexedDB.open("meu_arquiteto_fotos",1);
+ req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains("fotos"))db.createObjectStore("fotos")};
+ req.onsuccess=()=>resolve(req.result);
+ req.onerror=()=>reject(req.error||Error("Não foi possível abrir o banco de imagens."));
+});
+async function guardarFoto(id,arquivo){
+ const db=await bancoFotos;
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("fotos","readwrite");
+  tx.objectStore("fotos").put(arquivo,id);
+  tx.oncomplete=resolve;
+  tx.onerror=()=>reject(tx.error);
+ });
+}
+async function buscarFoto(id){
+ const db=await bancoFotos;
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("fotos","readonly");
+  const req=tx.objectStore("fotos").get(id);
+  req.onsuccess=()=>resolve(req.result||null);
+  req.onerror=()=>reject(req.error);
+ });
+}
+async function apagarFoto(id){
+ const db=await bancoFotos;
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction("fotos","readwrite");
+  tx.objectStore("fotos").delete(id);
+  tx.oncomplete=resolve;
+  tx.onerror=()=>reject(tx.error);
+ });
+}
+async function exibirFotoSalva(id,container){
+ try{
+  const arquivo=await buscarFoto(id);
+  if(!container.isConnected)return;
+  if(!arquivo){container.textContent="Imagem não disponível. Projetos antigos podem ter sido salvos sem foto.";return}
+  if(arquivo.type.startsWith("image/")){
+   const url=URL.createObjectURL(arquivo);
+   const img=document.createElement("img");
+   img.className="preview";img.alt="Fotografia salva do projeto";img.src=url;
+   img.onload=()=>URL.revokeObjectURL(url);
+   container.replaceChildren(img);
+  }else if(arquivo.type.startsWith("video/")){
+   const url=URL.createObjectURL(arquivo);
+   const video=document.createElement("video");video.className="preview";video.controls=true;video.src=url;
+   container.replaceChildren(video);
+  }else{
+   container.textContent="Arquivo salvo: "+arquivo.name;
+  }
+ }catch(e){container.textContent="Não foi possível carregar o arquivo salvo neste navegador."}
+}
+
 let imagemBase=null;
 let elementosVisuais=[];
 let elementoPendente=null;
@@ -772,8 +829,14 @@ async function criarProjeto(){
   data:new Date().toLocaleDateString("pt-BR"),
   tipo:"briefing"
  };
+ try{
+  await guardarFoto(projeto.id,arquivoAtual);
+ }catch(e){
+  alert("Não foi possível salvar a foto neste aparelho. Verifique espaço e permissões do navegador.");
+  return;
+ }
  projetos.push(projeto);
- if(!persistir()){projetos.pop();return}
+ if(!persistir()){projetos.pop();await apagarFoto(projeto.id).catch(()=>{});return}
  abrir("criar");
  const painel=document.getElementById("resultado");
  painel.classList.remove("hidden");
@@ -781,7 +844,7 @@ async function criarProjeto(){
  if(arquivoAtual.type.startsWith("image/")){
   try{
    await carregarImagemPrevia();desenharResultado();
-   aviso.textContent="Projeto registrado. Prévia ilustrativa pronta para personalizar e baixar. A foto não é armazenada no projeto salvo.";
+   aviso.textContent="Projeto registrado. Prévia ilustrativa pronta para personalizar e baixar. A foto original foi armazenada neste navegador e pode ser vista em Meus projetos.";
   }catch(e){aviso.textContent=e.message}
  }else{
   document.getElementById("telaResultado").style.display="none";
@@ -826,10 +889,16 @@ function listar(){
    const anteriores=projetos;
    projetos=projetos.filter(x=>x.id!==p.id);
    if(!persistir())projetos=anteriores;
+   else apagarFoto(p.id).catch(()=>{});
    listar();
   };
   card.append(titulo,info);
   if(p.tipo!=="cores"){
+   const imagemSalva=document.createElement("div");
+   imagemSalva.className="muted";
+   imagemSalva.textContent="Carregando foto do projeto...";
+   card.appendChild(imagemSalva);
+   exibirFotoSalva(p.id,imagemSalva);
    const detalhe=document.createElement("p");
    detalhe.textContent=(p.alcance==="inteiro"?"Ambiente inteiro":"Parte específica")+
     (p.localAlvo?" • "+p.localAlvo:"")+" — "+(p.descricao||"");
