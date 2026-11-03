@@ -24,6 +24,15 @@ export default {
     // somente após definir proteção contra abuso e orçamento na Cloudflare.
     if (env.EDIT_ENABLED !== "true") return json({ error: "Edição por IA ainda não ativada para uso público. Falta configurar controle de acesso e custos." }, 503);
     if (!env.AI) return json({ error: "Binding AI não configurado." }, 503);
+    // Autorização obrigatória para testes: nunca incluir esta chave no frontend público.
+    // Configure EDIT_TEST_TOKEN como Secret no painel da Cloudflare.
+    if (!env.EDIT_TEST_TOKEN || String(env.EDIT_TEST_TOKEN).length < 32)
+      return json({ error: "Chave privada de teste não configurada." }, 503);
+    const provided = request.headers.get("Authorization") || "";
+    if (provided !== "Bearer " + env.EDIT_TEST_TOKEN)
+      return json({ error: "Acesso não autorizado para edição de imagens." }, 401);
+    // Limite por requisição. Para limite global por usuário, adicionar rate limiter persistente.
+
     if (!(request.headers.get("content-type") || "").includes("multipart/form-data"))
       return json({ error: "Envie uma foto e a instrução usando multipart/form-data." }, 415);
     const length = Number(request.headers.get("content-length") || 0);
