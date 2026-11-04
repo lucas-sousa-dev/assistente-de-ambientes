@@ -348,6 +348,7 @@ footer{
   <div id="arquivoInfo" class="muted" style="margin-top:10px"></div>
   <div id="visualArquivo"></div>
 
+  <details style="margin-top:18px"><summary style="cursor:pointer;font-weight:700;color:var(--dark);padding:12px 0">Ajustes avançados (opcional)</summary>
   <label for="alcance">Qual parte deseja transformar?</label>
   <select id="alcance">
    <option value="parte">Uma parede ou parte específica</option>
@@ -375,11 +376,12 @@ footer{
    <option>Contemporâneo</option>
   </select>
 
-  <label for="descricao">O que você gostaria de mudar?</label>
+  </details>
+  <label for="descricao">O que você quer mudar na foto?</label>
   <textarea id="descricao" rows="3"
-   placeholder="Ex.: Quero armários planejados e cores claras."></textarea>
+   placeholder="Ex.: Pinte somente a parede de cinza claro."></textarea>
 
-  <button class="primary" id="botaoIA" style="width:100%;margin-top:18px" onclick="editarComIA()">✨ Editar foto com IA (experimental)</button>
+  <button class="primary" id="botaoIA" style="width:100%;margin-top:18px" onclick="editarComIA()">✨ Solicitar edição por IA (em testes)</button>
   <div id="estadoIA" role="status" class="muted" style="margin-top:10px"></div>
   <div id="painelIA" class="card hidden" style="margin-top:14px">
    <h2>Resultado da IA</h2>
@@ -390,6 +392,7 @@ footer{
    </div>
    <a id="baixarIA" class="secondary" style="display:inline-block;margin-top:12px" download="meu-arquiteto-ia.png">⬇ Baixar resultado</a>
   </div>
+  <details style="margin-top:16px"><summary style="cursor:pointer;font-weight:700;color:var(--dark);padding:12px 0">Ferramentas manuais e prévia ilustrativa</summary>
   <button class="primary" style="width:100%;margin-top:18px"
    onclick="criarProjeto()">
    ✨ Ver meu projeto
@@ -463,6 +466,7 @@ footer{
    será conectada posteriormente.
   </p>
  </div>
+  </details>
 </section>
 
 <section id="personalizar">
@@ -731,6 +735,7 @@ function mostrarArquivo(event){
   img.src=arquivoURL;
   img.className="preview";
   img.alt="Prévia do ambiente enviado";
+  img.onerror=()=>{area.replaceChildren();const aviso=document.createElement("p");aviso.style.color="#a33";aviso.textContent="Este formato de imagem não abriu no navegador. Para continuar, envie uma foto JPG ou PNG. Fotos HEIC/HEIF precisam ser convertidas antes da edição.";area.appendChild(aviso);};
   area.appendChild(img);
  }else if(file.type.startsWith("video/")){
   const video=document.createElement("video");
