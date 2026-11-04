@@ -22,10 +22,26 @@ jobs:
         run: |
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "Configure CLOUDFLARE_API_TOKEN nos secrets do repositório"; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "Configure CLOUDFLARE_ACCOUNT_ID nos secrets do repositório"; exit 1; }
+      - name: Diagnosticar acesso ao Worker na API Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node - <<'NODE'
+          const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/services/meu-arquiteto-ia`;
+          fetch(url, {headers: {Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`}})
+            .then(async r => {
+              const data = await r.json().catch(() => ({}));
+              console.log('Consulta de metadados do Worker: HTTP', r.status);
+              console.log('Sucesso:', data.success === true);
+              console.log('Erros Cloudflare:', JSON.stringify(data.errors || []));
+              if (!r.ok || data.success !== true) process.exitCode = 1;
+            }).catch(e => {console.error('Falha de rede:', e.message); process.exitCode = 1;});
+          NODE
       - name: Publicar
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: '4.156.0'
+          wranglerVersion: '4.157.0'
           command: deploy --config wrangler.jsonc
